@@ -1,0 +1,139 @@
+html {
+    line-height: 1.15;
+}
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
+
+}
+div {
+    box-sizing: border-box;
+}
+
+.dark-mode {
+    background-color: #1d2025;
+    color: #f0f4f8;
+}
+
+#main {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    min-height: 100vh;
+    margin: 0 1rem;
+}
+
+#sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 20%;
+    min-height: 100vh;
+    position: relative;
+    border-left-style: solid;
+    border-left-width: 1px;
+}
+#sidebar h3 {
+    margin: 0 0 0.5rem 0;
+}
+#sidebar .section {
+    padding: 1rem 0.25rem;
+    text-align: center;
+}
+#sidebar .section:not(:last-child) {
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+#sidebar .dicerow {
+    display: flex;
+    justify-content: space-around;
+}
+#sidebar .dicerow a {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    background-color: #96ccff;
+    color: #000;
+    font-size: 1.5rem;
+    text-decoration: none;
+    margin: 0 0.25rem;
+    padding: 0.25rem 0.5rem;
+}
+#sidebar .dicerow.dark-mode a {
+    background-color: #20588e;
+    color: #fff;
+}
+#sidebar .dicerow a.grow {
+    flex: unset;
+    flex-grow: 1;
+    font-size: 1.25rem;
+}
+#sidebar .dicerow a.shrink {
+    flex: unset;
+    flex-shrink: 1;
+    font-size: 1.25rem;
+}
+#sidebar #dice {
+    margin: 0.25rem 0;
+    display: flex; /* not block */
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+#sidebar #dice .die {
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    margin: 0.5rem;
+    width: 4rem;
+    height: 4rem;
+    color: #000;
+    font-size: 2.25rem;
+    border-width: 0.125rem;
+    border-radius: 0.5rem;
+    border-style: solid;
+    cursor: pointer;
+}
+#sidebar textarea {
+    width: 97.5%;
+    font-size: .875rem;
+    font-family: inherit;
+}
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+    background-color: #1d2025;
+    color: #f0f4f8;
+    border: 1px solid #666;
+    border-radius: 2px;
+}
+.dark-mode input {
+    padding: 2px 7px;
+}
+#sidebar .section#colorswap {
+    background-color: #f6fffe;
+    font-size: 1rem;
+}
+#sidebar .section#colorswap.dark-mode {
+    background-color: #142b3a;
+}
+#sidebar .section#colorswap a {
+    color: #000;
+    text-decoration: none;
+}
+#sidebar .section#colorswap.dark-mode a {
+    color: #fff;
+}
+#sidebar .section input {
+    margin-bottom: 2rem;
+}
+#sidebar .section#bottom span {
+    display: block;
+    position: absolute;
+    margin: 1rem 0 0.25rem;
+    font-size: .875rem;
+    width: 80%;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+}

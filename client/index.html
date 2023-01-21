@@ -1,19 +1,65 @@
 <!doctype html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <!-- <title>dark so thick you could cut it with a blades</title> -->
-    <!-- <meta name="theme-color" content="#fafafa"> -->
-    <link rel="icon" src="favicon.ico" sizes="any">
+<html class="">
+    <head>
+        <meta charset="utf-8">
+        <title>Blades in the Dark HUD</title>
+        <meta name="theme-color" content="#333333">
+        <link rel="icon" src="favicon.ico" sizes="any">
 
-    <script type="module" src="js/app.js"></script>
-    <script type="module" src="js/clock.js"></script>
-    <script type="module" src="js/clock_bar.js"></script>
-</head>
+        <link rel="stylesheet" type="text/css" href="css/main.css">
+        <script type="module" src="js/app.js"></script>
+        <script type="module" src="js/clock.js"></script>
+        <script type="module" src="js/clock_bar.js"></script>
+        <script src="js/dice.js"></script>
+        <script src="js/darkmode.js"></script>
+    </head>
 
-<body>
-    <p>wqfwqfpqwpfqpqwfp</p>
-    <bitd-app></bitd-app>
-</body>
+    <body>
+        <div id="main">
+            <p>wqfwqfpqwpfqpqwfp</p>
+            <bitd-app></bitd-app>
+        </div>
+
+        <div id="sidebar">
+            <div class="section">
+                <bitd-userswitcher></bitd-userswitcher>
+            </div>
+
+            <div class="section">
+                <h3>&#x1F3B2; dice</h3>
+                <div class="dicerow">
+                    <a href="#!" onClick="empty_dice()">0</a>
+                    <a href="#!" onClick="delete_die()">&minus;</a>
+                    <a href="#!" onClick="new_die()">+</a>
+                </div>
+                <div id="dice">
+                    <div class="die" onClick="roll_die(0)" style="background-color: yellow;">⋯</div>
+                </div>
+                <div class="dicerow">
+                    <a href="#!" onClick="roll_all_dice();" class="grow">roll all</a>
+                    <a href="#!" onClick="change_dice_colors();" class="shrink">&#x1F308;</a>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>&#x1f5d2; memo pad</h3>
+                <textarea rows="10"></textarea>
+                <span style="font-size:0.75rem;margin-bottom:2rem;">(does not save – this session only)</span>
+            </div>
+
+            <div class="section" id="colorswap">
+                <a href="#!" id="lightsbanner" onClick="lights(true)"><b><!-- &#x263e;&#xfe0e; --> &#x2600;&#xfe0e; toggle dark mode</b></a>
+            </div>
+
+            <div class="section" id="bottom">
+                <form onSubmit="sign_out()">
+                    <input type="submit" value="done playing" />
+                </form>
+                <span>
+                    last site update: 2023-01-21
+                </span>
+            </div>
+        </div>
+    </body>
 
 </html>
