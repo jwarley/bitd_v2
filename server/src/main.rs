@@ -15,6 +15,7 @@ use axum::{
     routing::get,
     Router,
 };
+use axum_extra::routing::SpaRouter;
 // use axum_typed_websockets::{Message, WebSocket, WebSocketUpgrade}
 use dashmap::DashMap;
 use futures::{sink::SinkExt, stream::StreamExt};
@@ -182,8 +183,9 @@ async fn main() {
 
     let shared_state = Arc::new(AppState { bitd, tx });
 
+    let spa = SpaRouter::new("", "../client");
     let app = Router::new()
-        .route("/", get(index))
+        .merge(spa)
         .route("/ws", get(websocket_handler))
         .with_state(shared_state);
 
@@ -304,9 +306,4 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
         _ = (&mut send_task) => recv_task.abort(),
         _ = (&mut recv_task) => send_task.abort(),
     };
-}
-
-// Include utf-8 file at **compile** time.
-async fn index() -> Html<&'static str> {
-    Html(std::include_str!("../chat.html"))
 }
