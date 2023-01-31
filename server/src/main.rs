@@ -33,7 +33,6 @@ type PlayerId = Uuid;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Clock {
-    id: ClockId,
     task: String,
     slices: u8,
     progress: u8,
@@ -42,7 +41,6 @@ struct Clock {
 impl Clock {
     fn new(task: String, slices: u8) -> Self {
         return Clock {
-            id: Uuid::new_v4(),
             task,
             slices,
             progress: 0,
@@ -50,45 +48,36 @@ impl Clock {
     }
 
     fn increment(&mut self) {
-        self.progress = u8::max(self.progress + 1, self.slices);
+        self.progress = u8::min(self.progress + 1, self.slices);
+    }
+
+    fn decrement(&mut self) {
+        self.progress = u8::checked_sub(self.progress, 1).unwrap_or(0);
     }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct PlayerData {
     name: String,
-    clocks: Vec<Clock>,
-    // clocks: DashMap<ClockId, Clock>,
+    clocks: DashMap<ClockId, Clock>,
 }
 
 impl PlayerData {
     fn new(name: String) -> Self {
         return PlayerData {
             name,
-            clocks: Vec::new(),
-            // clocks: DashMap::new(),
+            clocks: DashMap::new(),
         };
     }
 
     fn add_clock(&mut self, task: String, slices: u8) -> ClockId {
-        let c = Clock::new(task, slices);
-        let id = c.id;
-        self.clocks.push(c);
+        let id = Uuid::new_v4();
+        self.clocks.insert(id, Clock::new(task, slices));
         id
     }
 
-    // fn add_clock(&mut self, task: String, slices: u8) -> ClockId {
-    //     self.clocks.insert(id, Clock::new(task, slices));
-    //     id
-    // }
-
-    fn get_clock_by_id(&self, id: ClockId) -> Option<&Clock> {
-        for c in self.clocks.iter() {
-            if c.id == id {
-                return Some(c);
-            }
-        }
-        None
+    fn delete_clock(&mut self, id: ClockId) {
+        self.clocks.remove(&id);
     }
 }
 
@@ -104,29 +93,33 @@ impl Bitd {
         player_id
     }
 
-    fn add_clock(&mut self, player_id: Uuid, task: String, slices: u8) {
+    fn add_clock(&self, player_id: PlayerId, task: String, slices: u8) -> ClockId {
         self.players
             .get_mut(&player_id)
             .unwrap()
-            .add_clock(task, slices);
+            .add_clock(task, slices)
     }
 
-    fn increment_clock(&mut self, player_id: PlayerId, clock_id: ClockId) {
-        let mut player = self.players.get_mut(&player_id).unwrap();
+    fn delete_clock(&self, player_id: PlayerId, clock_id: ClockId) {
+        self.players
+            .get_mut(&player_id)
+            .unwrap()
+            .delete_clock(clock_id);
+    }
 
-        for c in player.clocks.iter_mut() {
-            if c.id == clock_id {
-                c.increment();
-                return;
-            }
-        }
-        // player.clocks.get_mut(&clock_id).unwrap().increment();
+    fn increment_clock(&self, player_id: PlayerId, clock_id: ClockId) {
+        let player = self.players.get_mut(&player_id).unwrap();
+        player.clocks.get_mut(&clock_id).unwrap().increment();
+    }
+
+    fn decrement_clock(&self, player_id: PlayerId, clock_id: ClockId) {
+        let player = self.players.get_mut(&player_id).unwrap();
+        player.clocks.get_mut(&clock_id).unwrap().decrement();
     }
 }
 
 // Our shared state
 struct AppState {
-    // We require unique usernames. This tracks which usernames have been taken.
     bitd: Bitd,
     // Channel used to send messages to all connected clients.
     tx: broadcast::Sender<SyncRequest>,
@@ -137,27 +130,33 @@ enum Instruction {
     /// Sent to the server by the client to request a change to state.
     FullSync,
     AddClock(PlayerId, String, u8),
-    Log(String),
-    // ClockIncrement(PlayerId, ClockId),
-    // ClockDecrement(PlayerId, ClockId),
+    DeleteClock(PlayerId, ClockId),
+    IncrementClock(PlayerId, ClockId),
+    DecrementClock(PlayerId, ClockId),
 }
 
 #[derive(Serialize, Debug, Clone)]
 enum SyncRequest {
-    /// Pieces of state sent from the server to the client after a change.
+    /// Messages broadcast to the send task to trigger a state update to any websocket clients
     ClockSync(PlayerId, ClockId),
+    DeleteClockSync(PlayerId, ClockId),
     FullSync,
-    PlayerSync(PlayerId),
-    AllClocksSync(PlayerId),
 }
 
 #[derive(Serialize, Debug, Clone)]
+#[serde(tag = "type")]
 enum UpdatePacket<'a> {
     /// Pieces of state sent from the server to the client after a change.
-    ClockUpdate(&'a Clock),
-    PlayerUpdate(&'a PlayerData),
-    AllPlayersUpdate(&'a DashMap<PlayerId, PlayerData>),
-    AllClocksUpdate(PlayerId, Vec<Clock>),
+    ClockUpdate {
+        player_id: PlayerId,
+        clock_id: ClockId,
+        clock: &'a Clock,
+    },
+    DeleteClockUpdate {
+        player_id: PlayerId,
+        clock_id: ClockId,
+    },
+    FullUpdate(&'a DashMap<PlayerId, PlayerData>),
 }
 
 #[tokio::main]
@@ -177,9 +176,11 @@ async fn main() {
     bitd.add_clock(p1_id, "the big man comes".to_string(), 3);
     bitd.add_clock(p2_id, "make another the moon".to_string(), 2);
 
-    dbg!(
-        serde_json::to_string(&Instruction::AddClock(p1_id, "test clock".to_string(), 9)).unwrap()
-    );
+    // use this to preview json reprs of newly defined types
+    // dbg!(
+    //     serde_json::to_string_pretty(&Instruction::AddClock(p1_id, "test clock".to_string(), 9))
+    //         .unwrap()
+    // );
 
     let shared_state = Arc::new(AppState { bitd, tx });
 
@@ -219,52 +220,54 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
         while let Ok(msg) = rx.recv().await {
             match msg {
                 SyncRequest::FullSync => {
-                    sender
+                    if sender
                         .send(Message::Text(
                             // serde_json::to_string(&UpdatePacket::FullSync(players)).unwrap(),
-                            serde_json::to_string(&UpdatePacket::AllPlayersUpdate(&*bitd.players))
+                            serde_json::to_string(&UpdatePacket::FullUpdate(&*bitd.players))
                                 .unwrap(),
                         ))
-                        .await;
-                }
-                SyncRequest::PlayerSync(player_id) => {
-                    sender
-                        .send(Message::Text(
-                            // serde_json::to_string(&UpdatePacket::FullSync(players)).unwrap(),
-                            serde_json::to_string(&UpdatePacket::PlayerUpdate(
-                                &*bitd.players.get(&player_id).unwrap(),
-                            ))
-                            .unwrap(),
-                        ))
-                        .await;
-                }
-                SyncRequest::AllClocksSync(player_id) => {
-                    let clocks = bitd.players.get_mut(&player_id).unwrap().clocks.clone();
-
-                    sender
-                        .send(Message::Text(
-                            serde_json::to_string(&UpdatePacket::AllClocksUpdate(
-                                player_id, clocks,
-                            ))
-                            .unwrap(),
-                        ))
-                        .await;
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    };
                 }
                 SyncRequest::ClockSync(player_id, clock_id) => {
-                    sender
+                    if sender
                         .send(Message::Text(
-                            // serde_json::to_string(&UpdatePacket::FullSync(players)).unwrap(),
-                            serde_json::to_string(&UpdatePacket::ClockUpdate(
-                                &*bitd
+                            serde_json::to_string(&UpdatePacket::ClockUpdate {
+                                player_id,
+                                clock_id,
+                                clock: &*bitd
                                     .players
                                     .get(&player_id)
                                     .unwrap()
-                                    .get_clock_by_id(clock_id)
+                                    .clocks
+                                    .get(&clock_id)
                                     .unwrap(),
-                            ))
+                            })
                             .unwrap(),
                         ))
-                        .await;
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    };
+                }
+                SyncRequest::DeleteClockSync(player_id, clock_id) => {
+                    if sender
+                        .send(Message::Text(
+                            serde_json::to_string(&UpdatePacket::DeleteClockUpdate {
+                                player_id,
+                                clock_id,
+                            })
+                            .unwrap(),
+                        ))
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    };
                 }
             }
         }
@@ -274,28 +277,63 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
     let tx = state.tx.clone();
     let bitd = state.bitd.clone();
 
-    // Spawn a task that takes messages from the websocket, prepends the user
-    // name, and sends them to all broadcast subscribers.
+    // This task receives instrutions from the client, performs the appropriate modifications to
+    // app state, and communicates to the send_task to dispatch an appropriate update to the
+    // clients.
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
             if let Ok(inst) = serde_json::from_str(&text) {
                 match inst {
                     Instruction::FullSync => {
-                        // dispatch a clocks update
-                        tx.send(SyncRequest::FullSync);
+                        if tx.send(SyncRequest::FullSync).is_err() {
+                            break;
+                        };
                     }
                     Instruction::AddClock(player_id, task, slices) => {
-                        dbg!("adding clock...");
-                        let _clock_id = bitd
-                            .players
-                            .get_mut(&player_id)
-                            .unwrap()
-                            .add_clock(task, slices);
-                        // TODO: Possibly send only the clock that was updated
-                        // tx.send(SyncRequest::ClockSync(player_id, clock_id));
-                        tx.send(SyncRequest::AllClocksSync(player_id));
+                        let clock_id = bitd.add_clock(player_id, task, slices);
+                        // let clock_id = bitd
+                        //     .players
+                        //     .get_mut(&player_id)
+                        //     .unwrap()
+                        //     .add_clock(task, slices);
+                        if tx
+                            .send(SyncRequest::ClockSync(player_id, clock_id))
+                            .is_err()
+                        {
+                            break;
+                        };
                     }
-                    _ => {}
+                    Instruction::DeleteClock(player_id, clock_id) => {
+                        bitd.delete_clock(player_id, clock_id);
+                        // bitd.players
+                        //     .get_mut(&player_id)
+                        //     .unwrap()
+                        //     .delete_clock(clock_id);
+                        if tx
+                            .send(SyncRequest::DeleteClockSync(player_id, clock_id))
+                            .is_err()
+                        {
+                            break;
+                        };
+                    }
+                    Instruction::IncrementClock(player_id, clock_id) => {
+                        bitd.increment_clock(player_id, clock_id);
+                        if tx
+                            .send(SyncRequest::ClockSync(player_id, clock_id))
+                            .is_err()
+                        {
+                            break;
+                        };
+                    }
+                    Instruction::DecrementClock(player_id, clock_id) => {
+                        bitd.decrement_clock(player_id, clock_id);
+                        if tx
+                            .send(SyncRequest::ClockSync(player_id, clock_id))
+                            .is_err()
+                        {
+                            break;
+                        };
+                    }
                 }
             }
         }

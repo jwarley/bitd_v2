@@ -1,5 +1,4 @@
 import {LitElement, html, map} from 'https://cdn.jsdelivr.net/gh/lit/dist@2/all/lit-all.min.js';
-// import {LitElement, html, map, ifDefined} from './lit.js';
 
 export class ClockBar extends LitElement {
     static properties = {
@@ -17,16 +16,23 @@ export class ClockBar extends LitElement {
         slices = slices == NaN ? 4 : slices;
         const message = JSON.stringify({ "AddClock": [this.player_id, task, slices] });
         this.dispatchEvent(new CustomEvent("add_clock", {detail: message, bubbles: true, composed: true }));
-        console.log("finished adding");
+    }
+
+    _delete_clock(clock_id) {
+        const message = JSON.stringify({ "DeleteClock": [this.player_id, clock_id] });
+        this.dispatchEvent(new CustomEvent("delete_clock", {detail: message, bubbles: true, composed: true }));
     }
 
     render() {
         return html`
             <button @click=${this._add_clock}>Add Clock</button>
-            <ul>${map(this.clocks, (c) =>
-                html`
-                    <bitd-clock task=${c.task} progress=${c.progress} slices=${c.slices}></bitd-clock>
-                `)}
+            <ul>${map(Object.entries(this.clocks), (c) => {
+                const id = c[0];
+                const clock = c[1];
+                return html`
+                    <bitd-clock id=${id} player_id=${this.player_id} task=${clock.task} progress=${clock.progress} slices=${clock.slices}></bitd-clock>
+                    <button @click=${() => this._delete_clock(id)}>belpo</button>
+                `})}
             </ul>
         `;
     }

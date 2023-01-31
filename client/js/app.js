@@ -1,6 +1,4 @@
 import {LitElement, html, map, ifDefined} from 'https://cdn.jsdelivr.net/gh/lit/dist@2/all/lit-all.min.js';
-// import {LitElement, html, map, ifDefined} from './lit.js';
-
 
 export class App extends LitElement {
     static properties = {
@@ -13,16 +11,26 @@ export class App extends LitElement {
         this._socket = new WebSocket('ws://localhost:3000/ws');
 
         this._socket.addEventListener('open', (event) => {
-            // this._socket.send('App opens websocket');
+            this.request_full_sync();
         });
 
-        this.addEventListener('clock_increment', (event) => {
-            this._socket.send('App increments clock');
+        this.addEventListener('full_sync', (event) => {
+            this.request_full_sync()
         });
 
         this.addEventListener('add_clock', (event) => {
-            console.log("heard add_clock");
-            console.log(event.detail);
+            this._socket.send(event.detail);
+        });
+
+        this.addEventListener('delete_clock', (event) => {
+            this._socket.send(event.detail);
+        });
+
+        this.addEventListener('increment_clock', (event) => {
+            this._socket.send(event.detail);
+        });
+
+        this.addEventListener('decrement_clock', (event) => {
             this._socket.send(event.detail);
         });
 
@@ -36,24 +44,20 @@ export class App extends LitElement {
     handle_server_message(event) {
         const update = JSON.parse(event.data);
 
-        if (update.Log) {
-            console.log("INFO:", update.Log);
+        if (update.type == "Log") {
+            console.log("INFO:", update);
         }
-        else if (update.FullSync) {
-            console.log("Handling full sync....");
-            console.log(update.FullSync)
-            this._players = update.FullSync.players
-            console.log(this._players)
+        else if (update.type == "FullUpdate") {
+            let {type: _, ...players} = update
+            this._players = players
         }
-        else if (update.AllClocksUpdate) {
-            const player_id = update.AllClocksUpdate[0];
-            console.log("Updating clocks for player....", player_id);
-            console.log(this._players)
-            // this._players = update.FullSync.players
+        else if (update.type == "ClockUpdate") {
+            this._players[update.player_id].clocks[update.clock_id] = update.clock;
+            this.requestUpdate();
         }
-        else if (update.PlayerUpdate) {
-            console.log("Handling player update....");
-            // this._players[update.PlayerUpdate[0]
+        else if (update.type == "DeleteClockUpdate") {
+            delete this._players[update.player_id].clocks[update.clock_id];
+            this.requestUpdate();
         }
         else {
             console.log("Unknown update packet received:")
@@ -80,7 +84,7 @@ export class App extends LitElement {
 
     render() {
         return html`
-            <button @click=${this.request_full_sync}>SYNC</button>
+            <button @click=${this.request_full_sync}>Force Sync</button>
             <p> ${this.render_players(ifDefined(this._players))} </p>
         `;
     }

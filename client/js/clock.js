@@ -1,8 +1,9 @@
 import {LitElement, html} from 'https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js';
-// import {LitElement, html, map, ifDefined} from './lit.js';
 
 export class Clock extends LitElement {
     static properties = {
+        id: {},
+        player_id: {},
         task: {},
         slices: {},
         progress: {},
@@ -14,8 +15,13 @@ export class Clock extends LitElement {
     }
 
     _increment() {
-        const e = new CustomEvent('clock_increment', {bubbles: true, composed: true});
-        this.dispatchEvent(e)
+        const message = JSON.stringify({ "IncrementClock": [this.player_id, this.id] });
+        this.dispatchEvent(new CustomEvent("increment_clock", {detail: message, bubbles: true, composed: true }));
+    }
+
+    _decrement() {
+        const message = JSON.stringify({ "DecrementClock": [this.player_id, this.id] });
+        this.dispatchEvent(new CustomEvent("decrement_clock", {detail: message, bubbles: true, composed: true }));
     }
 
     render() {
@@ -23,6 +29,7 @@ export class Clock extends LitElement {
         <p>${this.task}</p>
         <p>Progress: ${this.progress}/${this.slices}</p>
         <button @click=${this._increment}>Increment</button>
+        <button @click=${this._decrement}>Decrement</button>
         `;
     }
 }
