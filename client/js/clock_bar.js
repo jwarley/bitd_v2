@@ -20,7 +20,7 @@ export class ClockBar extends LitElement {
 
     static properties = {
         clocks: { type: Object },
-        player_id: {},
+        player_id: { type: String },
     }
 
     constructor() {

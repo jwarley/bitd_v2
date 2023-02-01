@@ -1,4 +1,4 @@
-import {LitElement, html, css} from 'https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js';
+import {LitElement, html, css, svg, map} from 'https://cdn.jsdelivr.net/gh/lit/dist@2/all/lit-all.min.js';
 
 export class Clock extends LitElement {
     static styles = css`
@@ -34,11 +34,11 @@ export class Clock extends LitElement {
     `;
 
     static properties = {
-        id: {},
-        player_id: {},
-        task: {},
-        slices: {},
-        progress: {},
+        id: { type: String },
+        player_id: { type: String },
+        task: { type: String },
+        slices: { type: Number },
+        progress: { type: Number },
         _delete_unlocked: { state: true },
     }
 
@@ -70,6 +70,7 @@ export class Clock extends LitElement {
     }
 
     render() {
+        // Construct the delete button depending on unlocked state
         const del_button = this._delete_unlocked ? html`
             <div class="del">
                 <a @click=${this._delete}>?</a>
@@ -79,11 +80,28 @@ export class Clock extends LitElement {
                 <a @click=${this._unlock_delete}>&#x2715;</a>
             </div>
         `;
+
+        // Render the clock face
+        const theta = 2 * Math.PI / this.slices;
+        const clock_face = svg`
+            <circle cx="0" cy="0" r="1" fill="none" stroke="white" stroke-width=".03"/>
+            ${map([...Array(this.slices).keys()], (i) => {
+                return svg`<line
+                    x1="0"
+                    y1="0"
+                    x2="${Math.cos((i * theta) - (Math.PI / 2))}"
+                    y2="${Math.sin((i * theta) - (Math.PI / 2))}"
+                    stroke="white" stroke-width=".03"
+                />`
+            })}
+        `;
+
         return html`
             <div class="clock">
                 <div class="pieces">
                     ${this.progress}&thinsp;/&thinsp;${this.slices}
                 </div>
+                <svg viewBox="-1.25 -1.25 2.5 2.5" height="100%" width="100%">${clock_face}</svg>
                 <div class="controls">
                     [&thinsp;<a @click=${this._decrement}>&minus;</a> / <a @click=${this._increment}>+</a>&thinsp;]
                 </div>
