@@ -31,12 +31,7 @@ function empty_dice() {
 
 function roll_die(num) {
     let dice = document.querySelectorAll("#sidebar .section #dice .die");
-    let oldnum = dice[num].innerHTML;
-    let newnum = Math.floor(Math.random()*6)+1;
-    while (newnum == oldnum) {
-        newnum = Math.floor(Math.random()*6)+1;
-    }
-    dice[num].innerHTML = newnum;
+    dice[num].innerHTML = Math.floor(Math.random()*6)+1;
 }
 
 function roll_all_dice() {
