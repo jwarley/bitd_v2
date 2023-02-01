@@ -3,33 +3,41 @@ import {LitElement, html, css, svg, map} from 'https://cdn.jsdelivr.net/gh/lit/d
 export class Clock extends LitElement {
     static styles = css`
         .clock {
-            text-align: center;
-            margin: 0;
-            padding: 0.5em;
-        }
-        p {
-            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 10rem;
         }
         .pieces {
-            margin: 1em;
+            margin: 0.5rem;
             font-weight: bold;
             color: red;
         }
-        .name {
-            margin: 0.75rem 0 1rem;
+        .controls {
+            color: var(--text-color);
         }
         .controls a {
             cursor: pointer;
             font-weight: bold;
         }
-        .del a {
-            margin: 5px;
+        .name {
+            margin: 0.75rem 0 1rem;
+            text-align: center;
+        }
+        .del {
+            width: 1.5rem;
+            height: 1.5rem;
+            line-height: 1.5rem;
+            text-align: center;
             cursor: pointer;
             color: var(--text-color);
             background-color: var(--gray-button-color);
-            padding: 0.25rem 0.5rem;
             font-size: 0.875rem;
-            border: 1px solid black;
+            border: 1px solid var(--text-color);
+        }
+        svg {
+            overflow: visible;
+            display: block;
         }
     `;
 
@@ -45,6 +53,13 @@ export class Clock extends LitElement {
     constructor() {
         super();
         this._delete_unlocked = false;
+        this.onclick = (evt) => {
+            this._increment();
+        }
+        this.oncontextmenu = (evt) => {
+            this._decrement();
+            return false;
+        }
     }
 
     _increment() {
@@ -58,6 +73,7 @@ export class Clock extends LitElement {
     }
 
     _delete() {
+        this._delete_unlocked = false;
         const message = JSON.stringify({ "DeleteClock": [this.player_id, this.id] });
         this.dispatchEvent(new CustomEvent("delete_clock", {detail: message, bubbles: true, composed: true }));
     }
@@ -84,14 +100,14 @@ export class Clock extends LitElement {
         // Render the clock face
         const theta = 2 * Math.PI / this.slices;
         const clock_face = svg`
-            <circle cx="0" cy="0" r="1" fill="none" stroke="white" stroke-width=".03"/>
+            <circle cx="0" cy="0" r="1" fill="none" stroke="var(--text-color)" stroke-width="0.03"/>
             ${map([...Array(this.slices).keys()], (i) => {
                 return svg`<line
                     x1="0"
                     y1="0"
                     x2="${Math.cos((i * theta) - (Math.PI / 2))}"
                     y2="${Math.sin((i * theta) - (Math.PI / 2))}"
-                    stroke="white" stroke-width=".03"
+                    stroke="var(--text-color)" stroke-width="0.03"
                 />`
             })}
         `;
@@ -102,9 +118,6 @@ export class Clock extends LitElement {
                     ${this.progress}&thinsp;/&thinsp;${this.slices}
                 </div>
                 <svg viewBox="-1.25 -1.25 2.5 2.5" height="100%" width="100%">${clock_face}</svg>
-                <div class="controls">
-                    [&thinsp;<a @click=${this._decrement}>&minus;</a> / <a @click=${this._increment}>+</a>&thinsp;]
-                </div>
                 <div class="name">
                     ${this.task}
                 </div>

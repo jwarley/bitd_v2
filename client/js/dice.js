@@ -31,7 +31,39 @@ function empty_dice() {
 
 function roll_die(num) {
     let dice = document.querySelectorAll("#sidebar .section #dice .die");
-    dice[num].innerHTML = Math.floor(Math.random()*6)+1;
+    let oldnum = dice[num].innerHTML;
+
+    let roll1 = Math.floor(Math.random()*6)+1;
+    while (roll1 == oldnum) {
+        roll1 = Math.floor(Math.random()*6)+1;
+    }
+    let roll2 = Math.floor(Math.random()*6)+1;
+    while (roll2 == oldnum) {
+        roll2 = Math.floor(Math.random()*6)+1;
+    }
+    let roll3 = Math.floor(Math.random()*6)+1;
+    while (roll3 == oldnum) {
+        roll3 = Math.floor(Math.random()*6)+1;
+    }
+    let roll4 = Math.floor(Math.random()*6)+1;
+    while (roll4 == oldnum) {
+        roll4 = Math.floor(Math.random()*6)+1;
+    }
+    setTimeout(function(){
+        dice[num].innerHTML = roll1;
+    }, 75);
+    setTimeout(function(){
+        dice[num].innerHTML = roll2;
+    }, 150);
+    setTimeout(function(){
+        dice[num].innerHTML = roll3;
+    }, 225);
+    setTimeout(function(){
+        dice[num].innerHTML = roll4;
+    }, 300);
+
+    let newnum = Math.floor(Math.random()*6)+1;
+    dice[num].innerHTML = newnum;
 }
 
 function roll_all_dice() {

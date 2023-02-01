@@ -30,9 +30,17 @@ export class ClockBar extends LitElement {
     _add_clock() {
         const task = window.prompt("What is the clock for?");
         let slices = parseInt(window.prompt("How many slices?", "4"));
-        slices = slices == NaN ? 4 : slices;
-        const message = JSON.stringify({ "AddClock": [this.player_id, task, slices] });
-        this.dispatchEvent(new CustomEvent("add_clock", {detail: message, bubbles: true, composed: true }));
+        if (slices > 50) {
+            window.alert("Can't make a clock with over 50 slices!");
+        }
+        else if (slices < 1) {
+            window.alert("Can't make a clock with less than 1 slice!");
+        }
+        else {
+            slices = slices == NaN ? 4 : slices;
+            const message = JSON.stringify({ "AddClock": [this.player_id, task, slices] });
+            this.dispatchEvent(new CustomEvent("add_clock", {detail: message, bubbles: true, composed: true }));
+        }
     }
 
     render() {
