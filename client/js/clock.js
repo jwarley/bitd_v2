@@ -39,11 +39,12 @@ export class Clock extends LitElement {
         task: {},
         slices: {},
         progress: {},
+        _delete_unlocked: { state: true },
     }
 
     constructor() {
         super();
-        this.progress = 4;
+        this._delete_unlocked = false;
     }
 
     _increment() {
@@ -61,7 +62,23 @@ export class Clock extends LitElement {
         this.dispatchEvent(new CustomEvent("delete_clock", {detail: message, bubbles: true, composed: true }));
     }
 
+    _unlock_delete() {
+        this._delete_unlocked = true;
+        setTimeout(() => {
+            this._delete_unlocked = false;
+        }, 2000);
+    }
+
     render() {
+        const del_button = this._delete_unlocked ? html`
+            <div class="del">
+                <a @click=${this._delete}>?</a>
+            </div>
+        ` : html`
+            <div class="del">
+                <a @click=${this._unlock_delete}>&#x2715;</a>
+            </div>
+        `;
         return html`
             <div class="clock">
                 <div class="pieces">
@@ -73,9 +90,7 @@ export class Clock extends LitElement {
                 <div class="name">
                     ${this.task}
                 </div>
-                <div class="del">
-                    <a @click=${this._delete}>&#x2715;</a>
-                </div>
+                ${del_button}
             </div>
         `;
     }
