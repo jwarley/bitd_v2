@@ -1,7 +1,29 @@
+html[data-theme='light'] {
+    --text-color: #000;
+    --gray-text-color: #666;
+    --page-color: #fff;
+    --button-color: #96ccff;
+    --gray-button-color: #eee;
+    --highlight-color: #f6fffe;
+    --symbol: "\2600\00a0";
+}
+
+html[data-theme='dark'] {
+    --text-color: #fff;
+    --gray-text-color: #aaa;
+    --page-color: #1d2025;
+    --button-color: #20588e;
+    --gray-button-color: #222;
+    --highlight-color: #142b3a;
+    --symbol: "\263e\00a0";
+}
+
 html {
     line-height: 1.15;
 }
 body {
+    background: var(--page-color);
+    color: var(--text-color);
     margin: 0;
     padding: 0;
     display: flex;
@@ -12,17 +34,11 @@ div {
     box-sizing: border-box;
 }
 
-.dark-mode {
-    background-color: #1d2025;
-    color: #f0f4f8;
-}
-
 #main {
     display: flex;
     flex-direction: column;
     width: 80%;
-    min-height: 100vh;
-    margin: 0 1rem;
+    margin: 0.5rem;
 }
 
 #sidebar {
@@ -33,9 +49,11 @@ div {
     position: relative;
     border-left-style: solid;
     border-left-width: 1px;
+    border-color: var(--text-color);
 }
 #sidebar h3 {
     margin: 0 0 0.5rem 0;
+    color: var(--text-color);
 }
 #sidebar .section {
     padding: 1rem 0.25rem;
@@ -44,6 +62,7 @@ div {
 #sidebar .section:not(:last-child) {
     border-bottom-style: solid;
     border-bottom-width: 1px;
+    border-color: var(--text-color);
 }
 #sidebar .dicerow {
     display: flex;
@@ -53,16 +72,12 @@ div {
     flex: 1 1 auto;
     min-width: 0;
     min-height: 0;
-    background-color: #96ccff;
-    color: #000;
+    background-color: var(--button-color);
+    color: var(--text-color);
     font-size: 1.5rem;
     text-decoration: none;
     margin: 0 0.25rem;
     padding: 0.25rem 0.5rem;
-}
-#sidebar .dicerow.dark-mode a {
-    background-color: #20588e;
-    color: #fff;
 }
 #sidebar .dicerow a.grow {
     flex: unset;
@@ -87,7 +102,7 @@ div {
     margin: 0.5rem;
     width: 4rem;
     height: 4rem;
-    color: #000;
+    color: #000; /* stay as black */
     font-size: 2.25rem;
     border-width: 0.125rem;
     border-radius: 0.5rem;
@@ -99,30 +114,26 @@ div {
     font-size: .875rem;
     font-family: inherit;
 }
-.dark-mode input,
-.dark-mode select,
-.dark-mode textarea {
-    background-color: #1d2025;
-    color: #f0f4f8;
-    border: 1px solid #666;
+input, select, textarea, button {
+    background-color: var(--page-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
     border-radius: 2px;
 }
-.dark-mode input {
-    padding: 2px 7px;
+input {
+    padding: 3px 8px;
 }
 #sidebar .section#colorswap {
-    background-color: #f6fffe;
+    background-color: var(--highlight-color);
     font-size: 1rem;
 }
-#sidebar .section#colorswap.dark-mode {
-    background-color: #142b3a;
-}
 #sidebar .section#colorswap a {
-    color: #000;
+    font-weight: bold;
+    color: var(--text-color);
     text-decoration: none;
 }
-#sidebar .section#colorswap.dark-mode a {
-    color: #fff;
+#sidebar .section#colorswap a::before {
+    content: var(--symbol);
 }
 #sidebar .section input {
     margin-bottom: 2rem;

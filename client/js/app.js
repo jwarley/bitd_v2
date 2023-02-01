@@ -1,6 +1,49 @@
-import {LitElement, html, map, ifDefined} from 'https://cdn.jsdelivr.net/gh/lit/dist@2/all/lit-all.min.js';
+import {LitElement, html, map, css, ifDefined} from 'https://cdn.jsdelivr.net/gh/lit/dist@2/all/lit-all.min.js';
 
 export class App extends LitElement {
+    static styles = css`
+        .playername {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+        }
+        .syncbtn {
+            margin-top: 1.5rem;
+        }
+        .topbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+        .topbar a {
+            color: #000;
+            text-align: center;
+            font-size: 1.5rem;
+            text-decoration: none;
+            color: var(--text-color);
+            background-color: var(--button-color);
+            margin: 0;
+            padding: 0.25rem 0.25rem;
+            flex: 1 1 auto;
+        }
+        .topbar a:not(:first-child):not(:last-child) {
+            margin: 0 0.5rem;
+        }
+        .topbar a:not(:first-child) {
+            color: var(--gray-text-color);
+            text-decoration: line-through;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+            -webkit-filter: grayscale(100%);
+        }
+        button {
+            background-color: var(--page-color);
+            color: var(--text-color);
+            border: 1px solid var(--text-color);
+            border-radius: 2px;
+            padding: 3px 8px;
+        }
+    `;
+
     static properties = {
         _players: { state: true },
         _socket: {},
@@ -73,7 +116,7 @@ export class App extends LitElement {
         const id = player_tuple[0]
         const player = player_tuple[1]
         return html`
-            <b>${player.name}</b>
+            <div class="playername">${player.name}</div>
             <bitd-clock-bar player_id=${id} clocks=${JSON.stringify(player.clocks)}></bitd-clock-bar>
         `;
     }
@@ -84,8 +127,13 @@ export class App extends LitElement {
 
     render() {
         return html`
-            <button @click=${this.request_full_sync}>Force Sync</button>
-            <p> ${this.render_players(ifDefined(this._players))} </p>
+            <div class="topbar">
+                <a href="#!">⏱ clocks</a>
+                <a href="#!">🗺 map</a>
+                <a href="#!">📝 notes</a>
+            </div>
+            ${this.render_players(ifDefined(this._players))}
+            <button class="syncbtn" @click=${this.request_full_sync}>force sync</button>
         `;
     }
 }

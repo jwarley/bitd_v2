@@ -1,6 +1,23 @@
-import {LitElement, html, map} from 'https://cdn.jsdelivr.net/gh/lit/dist@2/all/lit-all.min.js';
+import {LitElement, html, map, css} from 'https://cdn.jsdelivr.net/gh/lit/dist@2/all/lit-all.min.js';
 
 export class ClockBar extends LitElement {
+    static styles = css`
+        .plusbutton {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0.25rem 0.5rem;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            background-color: var(--button-color);
+        }
+        .clockholder {
+            display: flex;
+            width: 100%;
+        }
+    `;
+
     static properties = {
         clocks: { type: Object },
         player_id: {},
@@ -18,22 +35,19 @@ export class ClockBar extends LitElement {
         this.dispatchEvent(new CustomEvent("add_clock", {detail: message, bubbles: true, composed: true }));
     }
 
-    _delete_clock(clock_id) {
-        const message = JSON.stringify({ "DeleteClock": [this.player_id, clock_id] });
-        this.dispatchEvent(new CustomEvent("delete_clock", {detail: message, bubbles: true, composed: true }));
-    }
-
     render() {
         return html`
-            <button @click=${this._add_clock}>Add Clock</button>
-            <ul>${map(Object.entries(this.clocks), (c) => {
-                const id = c[0];
-                const clock = c[1];
-                return html`
-                    <bitd-clock id=${id} player_id=${this.player_id} task=${clock.task} progress=${clock.progress} slices=${clock.slices}></bitd-clock>
-                    <button @click=${() => this._delete_clock(id)}>belpo</button>
-                `})}
-            </ul>
+        <div style="display: flex;">
+            <div class="plusbutton" @click=${this._add_clock}>+</div>
+            <div class="clockholder">
+                ${map(Object.entries(this.clocks), (c) => {
+                    const id = c[0];
+                    const clock = c[1];
+                    return html`
+                        <bitd-clock id=${id} player_id=${this.player_id} task=${clock.task} progress=${clock.progress} slices=${clock.slices}></bitd-clock>
+                    `})}
+            </div>
+        </div>
         `;
     }
 }

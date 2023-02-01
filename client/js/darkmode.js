@@ -1,32 +1,17 @@
-if (localStorage.getItem('darkmode') == 'true') {
-    document.addEventListener("DOMContentLoaded", function(event) {
-        lights(false);
-        var lightsbanner = document.querySelector("#sidebar .section#colorswap #lightsbanner");
-        lightsbanner.innerHTML = lightsbanner.innerHTML.replace("\u2600", "\u263e");
-    });
-    // setTimeout(function(){
-    //  // wait before doing something
-    // },500);
+// https://lukelowrey.com/css-variable-theme-switcher/
+var storedTheme = localStorage.getItem('theme') || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+if (storedTheme) {
+    document.documentElement.setAttribute('data-theme', storedTheme);
 }
 
-function lights(toggle = true) {
-    document.body.classList.toggle("dark-mode");
-    document.querySelector("#sidebar .section#colorswap").classList.toggle("dark-mode");
-    document.querySelector("#sidebar textarea").classList.toggle("dark-mode");
-    document.querySelector("#sidebar input").classList.toggle("dark-mode");
-    var dicerows = document.querySelectorAll("#sidebar .dicerow");this
-    for (var i = 0; i < dicerows.length; i++) {
-        dicerows[i].classList.toggle("dark-mode");
+function lights() {
+    var currentTheme = document.documentElement.getAttribute("data-theme");
+    var targetTheme = "light";
+
+    if (currentTheme === "light") {
+        targetTheme = "dark";
     }
 
-    var lightsbanner = document.querySelector("#sidebar .section#colorswap #lightsbanner");
-    if (toggle) { // if clicking (not on pageload automatically)
-        if (localStorage.getItem('darkmode') == 'true') {
-            localStorage.setItem('darkmode', 'false');
-            lightsbanner.innerHTML = lightsbanner.innerHTML.replace("\u263e", "\u2600");
-        } else {
-            localStorage.setItem('darkmode', 'true');
-            lightsbanner.innerHTML = lightsbanner.innerHTML.replace("\u2600", "\u263e");
-        };
-    };
+    document.documentElement.setAttribute('data-theme', targetTheme)
+    localStorage.setItem('theme', targetTheme);
 };

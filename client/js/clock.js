@@ -1,6 +1,38 @@
-import {LitElement, html} from 'https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js';
+import {LitElement, html, css} from 'https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js';
 
 export class Clock extends LitElement {
+    static styles = css`
+        .clock {
+            text-align: center;
+            margin: 0;
+            padding: 0.5em;
+        }
+        p {
+            margin: 0;
+        }
+        .pieces {
+            margin: 1em;
+            font-weight: bold;
+            color: red;
+        }
+        .name {
+            margin: 0.75rem 0 1rem;
+        }
+        .controls a {
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .del a {
+            margin: 5px;
+            cursor: pointer;
+            color: var(--text-color);
+            background-color: var(--gray-button-color);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            border: 1px solid black;
+        }
+    `;
+
     static properties = {
         id: {},
         player_id: {},
@@ -24,12 +56,27 @@ export class Clock extends LitElement {
         this.dispatchEvent(new CustomEvent("decrement_clock", {detail: message, bubbles: true, composed: true }));
     }
 
+    _delete() {
+        const message = JSON.stringify({ "DeleteClock": [this.player_id, this.id] });
+        this.dispatchEvent(new CustomEvent("delete_clock", {detail: message, bubbles: true, composed: true }));
+    }
+
     render() {
         return html`
-        <p>${this.task}</p>
-        <p>Progress: ${this.progress}/${this.slices}</p>
-        <button @click=${this._increment}>Increment</button>
-        <button @click=${this._decrement}>Decrement</button>
+            <div class="clock">
+                <div class="pieces">
+                    ${this.progress}&thinsp;/&thinsp;${this.slices}
+                </div>
+                <div class="controls">
+                    [&thinsp;<a @click=${this._decrement}>&minus;</a> / <a @click=${this._increment}>+</a>&thinsp;]
+                </div>
+                <div class="name">
+                    ${this.task}
+                </div>
+                <div class="del">
+                    <a @click=${this._delete}>&#x2715;</a>
+                </div>
+            </div>
         `;
     }
 }
