@@ -1,17 +1,9 @@
-//! Example chat application.
-//!
-//! Run with
-//!
-//! ```not_rust
-//! cd examples && cargo run -p example-chat
-//! ```
-
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
         State,
     },
-    response::{Html, IntoResponse},
+    response::{IntoResponse},
     routing::get,
     Router,
 };
@@ -21,9 +13,8 @@ use dashmap::DashMap;
 use futures::{sink::SinkExt, stream::StreamExt};
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::{HashMap, HashSet},
     net::SocketAddr,
-    sync::{Arc, Mutex},
+    sync::{Arc},
 };
 use tokio::sync::broadcast;
 use uuid::Uuid;
@@ -71,7 +62,7 @@ impl PlayerData {
     }
 
     fn add_clock(&mut self, task: String, slices: u8) -> ClockId {
-        let id = Uuid::new_v4();
+        let id = Uuid::now_v7();
         self.clocks.insert(id, Clock::new(task, slices));
         id
     }
@@ -88,7 +79,7 @@ struct Bitd {
 
 impl Bitd {
     fn add_player(&mut self, name: String) -> Uuid {
-        let player_id = Uuid::new_v4();
+        let player_id = Uuid::now_v7();
         self.players.insert(player_id, PlayerData::new(name));
         player_id
     }

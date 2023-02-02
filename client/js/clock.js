@@ -53,13 +53,6 @@ export class Clock extends LitElement {
     constructor() {
         super();
         this._delete_unlocked = false;
-        this.onclick = (evt) => {
-            this._increment();
-        }
-        this.oncontextmenu = (evt) => {
-            this._decrement();
-            return false;
-        }
     }
 
     _increment() {
@@ -67,7 +60,8 @@ export class Clock extends LitElement {
         this.dispatchEvent(new CustomEvent("increment_clock", {detail: message, bubbles: true, composed: true }));
     }
 
-    _decrement() {
+    _decrement(e) {
+        e.preventDefault();
         const message = JSON.stringify({ "DecrementClock": [this.player_id, this.id] });
         this.dispatchEvent(new CustomEvent("decrement_clock", {detail: message, bubbles: true, composed: true }));
     }
@@ -117,7 +111,7 @@ export class Clock extends LitElement {
                 <div class="pieces">
                     ${this.progress}&thinsp;/&thinsp;${this.slices}
                 </div>
-                <svg viewBox="-1.25 -1.25 2.5 2.5" height="100%" width="100%">${clock_face}</svg>
+                <svg @click=${this._increment} @contextmenu=${this._decrement} viewBox="-1.25 -1.25 2.5 2.5" height="100%" width="100%">${clock_face}</svg>
                 <div class="name">
                     ${this.task}
                 </div>
