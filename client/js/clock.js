@@ -53,6 +53,12 @@ export class Clock extends LitElement {
     constructor() {
         super();
         this._delete_unlocked = false;
+        // don't select text on double click, which we might do on clock faces
+        document.addEventListener('mousedown', function(event) {
+            if (event.detail > 1) {
+                event.preventDefault();
+            }
+        }, false);
     }
 
     _increment() {
@@ -82,12 +88,12 @@ export class Clock extends LitElement {
     render() {
         // Construct the delete button depending on unlocked state
         const del_button = this._delete_unlocked ? html`
-            <div class="del">
-                <a @click=${this._delete}>?</a>
+            <div @click=${this._delete} class="del">
+                ?
             </div>
         ` : html`
-            <div class="del">
-                <a @click=${this._unlock_delete}>&#x2715;</a>
+            <div @click=${this._unlock_delete} class="del">
+                &#x2715;
             </div>
         `;
 
@@ -96,13 +102,15 @@ export class Clock extends LitElement {
         const clock_face = svg`
             <circle cx="0" cy="0" r="1" fill="none" stroke="var(--text-color)" stroke-width="0.03"/>
             ${map([...Array(this.slices).keys()], (i) => {
-                return svg`<line
-                    x1="0"
-                    y1="0"
-                    x2="${Math.cos((i * theta) - (Math.PI / 2))}"
-                    y2="${Math.sin((i * theta) - (Math.PI / 2))}"
-                    stroke="var(--text-color)" stroke-width="0.03"
-                />`
+                if (this.slices > 1) {
+                    return svg`<line
+                        x1="0"
+                        y1="0"
+                        x2="${Math.cos((i * theta) - (Math.PI / 2))}"
+                        y2="${Math.sin((i * theta) - (Math.PI / 2))}"
+                        stroke="var(--text-color)" stroke-width="0.03"
+                    />`
+                }
             })}
         `;
 

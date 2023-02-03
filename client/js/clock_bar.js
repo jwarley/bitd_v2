@@ -11,6 +11,7 @@ export class ClockBar extends LitElement {
             font-size: 1.5rem;
             color: var(--text-color);
             background-color: var(--button-color);
+            cursor: pointer;
         }
         .clockholder {
             display: flex;
@@ -29,6 +30,8 @@ export class ClockBar extends LitElement {
 
     _add_clock() {
         const task = window.prompt("What is the clock for?");
+        if (task === null) return;
+
         let slices = parseInt(window.prompt("How many slices?", "4"));
         if (slices > 50) {
             window.alert("Can't make a clock with over 50 slices!");
