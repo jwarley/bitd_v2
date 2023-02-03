@@ -8,17 +8,9 @@ export class Clock extends LitElement {
             align-items: center;
             max-width: 10rem;
         }
-        .pieces {
-            margin: 0.5rem;
-            font-weight: bold;
-            color: red;
-        }
-        .controls {
-            color: var(--text-color);
-        }
-        .controls a {
-            cursor: pointer;
-            font-weight: bold;
+        svg {
+            overflow: visible;
+            display: block;
         }
         .name {
             margin: 0.75rem 0 1rem;
@@ -34,10 +26,6 @@ export class Clock extends LitElement {
             background-color: var(--gray-button-color);
             font-size: 0.875rem;
             border: 1px solid var(--text-color);
-        }
-        svg {
-            overflow: visible;
-            display: block;
         }
     `;
 
@@ -99,14 +87,16 @@ export class Clock extends LitElement {
 
         // Render the clock face
         const theta = 2 * Math.PI / this.slices;
+        const overhalf = this.progress / this.slices > 0.5 ? 1 : 0;
+        const allfull = this.progress == this.slices ? "var(--clock-color)" : "none";
         const clock_face = svg`
             <path
                 d="M 0,-1
-                   A 1 1 0 0 1 ${Math.cos(Math.PI/4 - Math.PI/2)} ${-Math.sin(Math.PI/4 - Math.PI/2)}
+                   A 1 1 0 ${overhalf} 1 ${Math.cos(Math.PI/2 - (theta * this.progress))} ${-Math.sin(Math.PI/2 - (theta * this.progress))}
                    L 0 0 Z
                 " fill="var(--clock-color)"
             />
-            <circle cx="0" cy="0" r="1" fill="none" stroke="var(--text-color)" stroke-width="0.03"/>
+            <circle cx="0" cy="0" r="1" fill="${allfull}" stroke="var(--text-color)" stroke-width="0.03"/>
             ${map([...Array(this.slices).keys()], (i) => {
                 if (this.slices > 1) {
                     return svg`<line
@@ -122,9 +112,6 @@ export class Clock extends LitElement {
 
         return html`
             <div class="clock">
-                <div class="pieces">
-                    ${this.progress}&thinsp;/&thinsp;${this.slices}
-                </div>
                 <svg @click=${this._increment} @contextmenu=${this._decrement} viewBox="-1.25 -1.25 2.5 2.5" height="100%" width="100%">${clock_face}</svg>
                 <div class="name">
                     ${this.task}
