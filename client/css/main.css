@@ -5,6 +5,7 @@ html[data-theme='light'] {
     --button-color: #96ccff;
     --gray-button-color: #eee;
     --highlight-color: #f6fffe;
+    --clock-color: #a463f3;
     --symbol: "\2600\00a0";
 }
 
@@ -15,6 +16,7 @@ html[data-theme='dark'] {
     --button-color: #20588e;
     --gray-button-color: #222;
     --highlight-color: #142b3a;
+    --clock-color: #9d3a5a;
     --symbol: "\263e\00a0";
 }
 

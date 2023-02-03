@@ -122,7 +122,10 @@ export class App extends LitElement {
     }
 
     render_players(players) {
-        return map(Object.entries(players), this.render_clocks_of)
+        let allplayers = Object.entries(players);
+        // sort based on who has the most clocks
+        allplayers.sort(function(a, b){return Object.keys(b[1].clocks).length - Object.keys(a[1].clocks).length});
+        return map(allplayers, this.render_clocks_of);
     }
 
     render() {
