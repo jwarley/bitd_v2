@@ -160,12 +160,16 @@ async fn main() {
         players: Arc::new(DashMap::new()),
     };
 
+    let _worldclock = bitd.add_player("world".to_string());
+
+    // -- temp.
     let p1_id = bitd.add_player("branch".to_string());
     let p2_id = bitd.add_player("tiktok".to_string());
 
     bitd.add_clock(p1_id, "spicy goblins".to_string(), 5);
     bitd.add_clock(p1_id, "the big man comes".to_string(), 3);
     bitd.add_clock(p2_id, "make another the moon".to_string(), 2);
+    // --
 
     // use this to preview json reprs of newly defined types
     // dbg!(

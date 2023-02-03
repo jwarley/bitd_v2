@@ -2,12 +2,22 @@ import {LitElement, html, map, css, ifDefined} from 'https://cdn.jsdelivr.net/gh
 
 export class App extends LitElement {
     static styles = css`
+        *:nth-of-type(1) {
+            --clock-color: var(--world-clock-color);
+        }
         .playername {
             font-size: 1.5rem;
             margin: 1rem 0;
         }
         .syncbtn {
-            margin-top: 1.5rem;
+            position: fixed;
+            top: 5px;
+            right: 5px;
+            font-size: 0.75rem;
+            color: var(--page-color);
+            z-index: 99;
+            cursor: pointer;
+            font-weight: bold;
         }
         .topbar {
             display: flex;
@@ -123,9 +133,28 @@ export class App extends LitElement {
 
     render_players(players) {
         let allplayers = Object.entries(players);
+        let player_list = [];
+        let world_clock = [];
+
+        for (const p of allplayers) {
+            if (p[1].name == "world") {
+                world_clock.push(p)
+            } else {
+                player_list.push(p);
+            }
+        }
+
         // sort based on who has the most clocks
-        allplayers.sort(function(a, b){return Object.keys(b[1].clocks).length - Object.keys(a[1].clocks).length});
-        return map(allplayers, this.render_clocks_of);
+        function player_sort(a, b) {
+            const a_length = Object.keys(a[1].clocks).length;
+            const b_length = Object.keys(b[1].clocks).length;
+            return b_length - a_length; // negative: a before b; positive: b before a
+        }
+        player_list.sort(function(a, b){return player_sort(a, b)});
+
+        const player_order = world_clock.concat(player_list);
+
+        return map(player_order, this.render_clocks_of);
     }
 
     render() {
@@ -138,7 +167,7 @@ export class App extends LitElement {
             <div class="clocks">
                 ${this.render_players(ifDefined(this._players))}
             </div>
-            <button class="syncbtn" @click=${this.request_full_sync}>force sync</button>
+            <a class="syncbtn" @click=${this.request_full_sync}>force sync</a>
         `;
     }
 }
