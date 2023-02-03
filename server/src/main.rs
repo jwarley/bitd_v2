@@ -167,21 +167,26 @@ async fn main() {
 
     // Load players from backup
     let players = DashMap::new();
-    let player_files = fs::read_dir("./players").expect("No ./players/ directory found!");
-    for file in player_files {
-        let uuid = Uuid::parse_str(
-            Path::new(&file.as_ref().unwrap().file_name())
-                .file_stem()
-                .unwrap()
-                .to_str()
-                .unwrap(),
-        )
-        .unwrap();
-        let player = toml::from_str(&fs::read_to_string(&file.unwrap().path()).unwrap()).unwrap();
-        players.insert(uuid, player);
+    fs::create_dir_all("./players").expect("Could not create server/players/ directory.");
+    for file in fs::read_dir("./players").unwrap() {
+        let path = file.as_ref().unwrap().path();
+        if let Some(extension) = path.extension() {
+            if extension == "toml" {
+                let uuid = Uuid::parse_str(
+                    Path::new(&file.as_ref().unwrap().file_name())
+                        .file_stem()
+                        .unwrap()
+                        .to_str()
+                        .unwrap(),
+                )
+                .unwrap();
+                let player = toml::from_str(&fs::read_to_string(&file.unwrap().path()).unwrap()).unwrap();
+                players.insert(uuid, player);
+            }
+        }
     }
 
-    let mut bitd = Bitd {
+    let bitd = Bitd {
         players: Arc::new(players),
     };
 
