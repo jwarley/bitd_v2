@@ -28,7 +28,7 @@ export class App extends LitElement {
         .topbar a:not(:first-child):not(:last-child) {
             margin: 0 0.5rem;
         }
-        .topbar a:not(:first-child) {
+        .topbar a.disabled {
             color: var(--gray-text-color);
             text-decoration: line-through;
             cursor: not-allowed;
@@ -129,10 +129,12 @@ export class App extends LitElement {
         return html`
             <div class="topbar">
                 <a href="#!">⏱ clocks</a>
-                <a href="#!">🗺 map</a>
-                <a href="#!">📝 notes</a>
+                <a class="disabled" href="#!">🗺 map</a>
+                <a class="disabled" href="#!">📝 notes</a>
             </div>
-            ${this.render_players(ifDefined(this._players))}
+            <div class="clocks">
+                ${this.render_players(ifDefined(this._players))}
+            </div>
             <button class="syncbtn" @click=${this.request_full_sync}>force sync</button>
         `;
     }
