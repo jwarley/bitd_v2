@@ -100,6 +100,12 @@ export class Clock extends LitElement {
         // Render the clock face
         const theta = 2 * Math.PI / this.slices;
         const clock_face = svg`
+            <path
+                d="M 0,-1
+                   A 1 1 0 0 1 ${Math.cos(Math.PI/4 - Math.PI/2)} ${-Math.sin(Math.PI/4 - Math.PI/2)}
+                   L 0 0 Z
+                "
+            />
             <circle cx="0" cy="0" r="1" fill="none" stroke="var(--text-color)" stroke-width="0.03"/>
             ${map([...Array(this.slices).keys()], (i) => {
                 if (this.slices > 1) {
