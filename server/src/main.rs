@@ -3,19 +3,18 @@ use axum::{
         ws::{Message, WebSocket, WebSocketUpgrade},
         State,
     },
-    response::{IntoResponse},
+    response::IntoResponse,
     routing::get,
     Router,
 };
 use axum_extra::routing::SpaRouter;
+use std::path::Path;
 // use axum_typed_websockets::{Message, WebSocket, WebSocketUpgrade}
 use dashmap::DashMap;
 use futures::{sink::SinkExt, stream::StreamExt};
 use serde::{Deserialize, Serialize};
-use std::{
-    net::SocketAddr,
-    sync::{Arc},
-};
+use std::fs;
+use std::{net::SocketAddr, sync::Arc};
 use tokio::sync::broadcast;
 use uuid::Uuid;
 
@@ -107,6 +106,17 @@ impl Bitd {
         let player = self.players.get_mut(&player_id).unwrap();
         player.clocks.get_mut(&clock_id).unwrap().decrement();
     }
+
+    fn backup_player(&self, player_id: PlayerId) {
+        if fs::write(
+            format!("./players/{}.toml", player_id),
+            toml::to_string_pretty(&*self.players.get(&player_id).unwrap()).unwrap(),
+        )
+        .is_err()
+        {
+            println!("Failed to backup player {}", player_id);
+        };
+    }
 }
 
 // Our shared state
@@ -155,17 +165,26 @@ async fn main() {
     // Set up application state for use with with_state().
     let (tx, _rx) = broadcast::channel(100);
 
+    // Load players from backup
+    let players = DashMap::new();
+    let player_files = fs::read_dir("./players").expect("No ./players/ directory found!");
+    for file in player_files {
+        let uuid = Uuid::parse_str(
+            Path::new(&file.as_ref().unwrap().file_name())
+                .file_stem()
+                .unwrap()
+                .to_str()
+                .unwrap(),
+        )
+        .unwrap();
+        let player = toml::from_str(&fs::read_to_string(&file.unwrap().path()).unwrap()).unwrap();
+        players.insert(uuid, player);
+    }
+
     // Making some dummy data
-    let mut bitd = Bitd {
-        players: Arc::new(DashMap::new()),
+    let bitd = Bitd {
+        players: Arc::new(players),
     };
-
-    let p1_id = bitd.add_player("branch".to_string());
-    let p2_id = bitd.add_player("tiktok".to_string());
-
-    bitd.add_clock(p1_id, "spicy goblins".to_string(), 5);
-    bitd.add_clock(p1_id, "the big man comes".to_string(), 3);
-    bitd.add_clock(p2_id, "make another the moon".to_string(), 2);
 
     // use this to preview json reprs of newly defined types
     // dbg!(
@@ -213,7 +232,6 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                 SyncRequest::FullSync => {
                     if sender
                         .send(Message::Text(
-                            // serde_json::to_string(&UpdatePacket::FullSync(players)).unwrap(),
                             serde_json::to_string(&UpdatePacket::FullUpdate(&*bitd.players))
                                 .unwrap(),
                         ))
@@ -282,11 +300,7 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                     }
                     Instruction::AddClock(player_id, task, slices) => {
                         let clock_id = bitd.add_clock(player_id, task, slices);
-                        // let clock_id = bitd
-                        //     .players
-                        //     .get_mut(&player_id)
-                        //     .unwrap()
-                        //     .add_clock(task, slices);
+                        bitd.backup_player(player_id);
                         if tx
                             .send(SyncRequest::ClockSync(player_id, clock_id))
                             .is_err()
@@ -296,10 +310,7 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                     }
                     Instruction::DeleteClock(player_id, clock_id) => {
                         bitd.delete_clock(player_id, clock_id);
-                        // bitd.players
-                        //     .get_mut(&player_id)
-                        //     .unwrap()
-                        //     .delete_clock(clock_id);
+                        bitd.backup_player(player_id);
                         if tx
                             .send(SyncRequest::DeleteClockSync(player_id, clock_id))
                             .is_err()
@@ -309,6 +320,7 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                     }
                     Instruction::IncrementClock(player_id, clock_id) => {
                         bitd.increment_clock(player_id, clock_id);
+                        bitd.backup_player(player_id);
                         if tx
                             .send(SyncRequest::ClockSync(player_id, clock_id))
                             .is_err()
@@ -318,6 +330,7 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                     }
                     Instruction::DecrementClock(player_id, clock_id) => {
                         bitd.decrement_clock(player_id, clock_id);
+                        bitd.backup_player(player_id);
                         if tx
                             .send(SyncRequest::ClockSync(player_id, clock_id))
                             .is_err()
