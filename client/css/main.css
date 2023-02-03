@@ -6,6 +6,7 @@ html[data-theme='light'] {
     --gray-button-color: #eee;
     --highlight-color: #f6fffe;
     --clock-color: #a463f3;
+    --world-clock-color: #6bcaa5;
     --symbol: "\2600\00a0";
 }
 
@@ -16,7 +17,8 @@ html[data-theme='dark'] {
     --button-color: #20588e;
     --gray-button-color: #222;
     --highlight-color: #142b3a;
-    --clock-color: #9d3a5a;
+    --clock-color: #673c9c; /* #9d3a5a */
+    --world-clock-color: #257757;
     --symbol: "\263e\00a0";
 }
 
@@ -40,15 +42,16 @@ div {
     display: flex;
     flex-direction: column;
     width: 80%;
-    margin: 0.5rem;
+    padding: 0.5rem;
 }
 
 #sidebar {
     display: flex;
     flex-direction: column;
     width: 20%;
-    min-height: 100vh;
-    position: relative;
+    height: 100vh;
+    position: fixed;
+    right: 0;
     border-left-style: solid;
     border-left-width: 1px;
     border-color: var(--text-color);
@@ -112,8 +115,8 @@ div {
     cursor: pointer;
 }
 #sidebar textarea {
-    width: 97.5%;
-    font-size: .875rem;
+    width: calc(100% - 1rem);
+    font-size: 0.875rem;
     font-family: inherit;
 }
 input, select, textarea, button {
