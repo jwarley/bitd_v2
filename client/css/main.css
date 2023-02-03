@@ -7,6 +7,7 @@ html[data-theme='light'] {
     --highlight-color: #f6fffe;
     --clock-color: #a463f3;
     --world-clock-color: #6bcaa5;
+    --dice-default-color: yellow;
     --symbol: "\2600\00a0";
 }
 
@@ -19,138 +20,25 @@ html[data-theme='dark'] {
     --highlight-color: #142b3a;
     --clock-color: #673c9c; /* #9d3a5a */
     --world-clock-color: #257757;
+    --dice-default-color: #c3c309;
     --symbol: "\263e\00a0";
 }
 
 html {
     line-height: 1.15;
 }
+
 body {
     background: var(--page-color);
     color: var(--text-color);
     margin: 0;
-    padding: 0;
-    display: flex;
     font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
-
 }
+
 div {
     box-sizing: border-box;
 }
 
-#main {
-    display: flex;
-    flex-direction: column;
-    width: 80%;
-    padding: 0.5rem;
-}
-
-#sidebar {
-    display: flex;
-    flex-direction: column;
-    width: 20%;
-    height: 100vh;
-    position: fixed;
-    right: 0;
-    border-left-style: solid;
-    border-left-width: 1px;
-    border-color: var(--text-color);
-}
-#sidebar h3 {
-    margin: 0 0 0.5rem 0;
-    color: var(--text-color);
-}
-#sidebar .section {
-    padding: 1rem 0.25rem;
-    text-align: center;
-}
-#sidebar .section:not(:last-child) {
-    border-bottom-style: solid;
-    border-bottom-width: 1px;
-    border-color: var(--text-color);
-}
-#sidebar .dicerow {
-    display: flex;
-    justify-content: space-around;
-}
-#sidebar .dicerow a {
-    flex: 1 1 auto;
-    min-width: 0;
-    min-height: 0;
-    background-color: var(--button-color);
-    color: var(--text-color);
-    font-size: 1.5rem;
-    text-decoration: none;
-    margin: 0 0.25rem;
-    padding: 0.25rem 0.5rem;
-}
-#sidebar .dicerow a.grow {
-    flex: unset;
-    flex-grow: 1;
-    font-size: 1.25rem;
-}
-#sidebar .dicerow a.shrink {
-    flex: unset;
-    flex-shrink: 1;
-    font-size: 1.25rem;
-}
-#sidebar #dice {
-    margin: 0.25rem 0;
-    display: flex; /* not block */
-    flex-wrap: wrap;
-    justify-content: space-around;
-}
-#sidebar #dice .die {
-    justify-content: center;
-    display: flex;
-    flex-direction: column;
-    margin: 0.5rem;
-    width: 4rem;
-    height: 4rem;
-    color: #000; /* stay as black */
-    font-size: 2.25rem;
-    border-width: 0.125rem;
-    border-radius: 0.5rem;
-    border-style: solid;
-    cursor: pointer;
-}
-#sidebar textarea {
-    width: calc(100% - 1rem);
-    font-size: 0.875rem;
-    font-family: inherit;
-}
-input, select, textarea, button {
-    background-color: var(--page-color);
-    color: var(--text-color);
-    border: 1px solid var(--text-color);
-    border-radius: 2px;
-}
-input {
-    padding: 3px 8px;
-}
-#sidebar .section#colorswap {
-    background-color: var(--highlight-color);
-    font-size: 1rem;
-    cursor: pointer;
-}
-#sidebar .section#colorswap a {
-    font-weight: bold;
-    color: var(--text-color);
-    text-decoration: none;
-}
-#sidebar .section#colorswap a::before {
-    content: var(--symbol);
-}
-#sidebar .section input {
-    margin-bottom: 2rem;
-}
-#sidebar .section#bottom span {
-    display: block;
-    position: absolute;
-    margin: 1rem 0 0.25rem;
-    font-size: .875rem;
-    width: 80%;
-    bottom: 4px;
-    left: 50%;
-    transform: translateX(-50%);
+bitd-app {
+    width: 100%;
 }

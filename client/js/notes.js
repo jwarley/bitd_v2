@@ -2,7 +2,7 @@
 window.onload=function(){
     (function (win, doc) {
         if (!win.localStorage) return;
-        var textarea = doc.getElementById('memopad');
+        const textarea = doc.querySelector("bitd-app").shadowRoot.querySelector("bitd-sidebar").shadowRoot.getElementById("memopad");
         var item = null;
 
         var unloadEvent;

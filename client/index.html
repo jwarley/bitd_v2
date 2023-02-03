@@ -8,59 +8,17 @@
 
         <link rel="stylesheet" type="text/css" href="css/main.css">
         <script type="module" src="js/app.js"></script>
+        <script type="module" src="js/sidebar.js"></script>
+        <script type="module" src="js/userswitcher.js"></script>
         <script type="module" src="js/clock.js"></script>
         <script type="module" src="js/clock_bar.js"></script>
-        <script type="module" src="js/userswitcher.js"></script>
-        <script src="js/notes.js"></script>
         <script src="js/dice.js"></script>
+        <script src="js/notes.js"></script>
         <script src="js/darkmode.js"></script>
     </head>
 
     <body>
-        <div id="main">
-            <bitd-app></bitd-app>
-        </div>
-
-        <div id="sidebar">
-            <div class="section">
-                <bitd-userswitcher></bitd-userswitcher>
-            </div>
-
-            <div class="section">
-                <h3>&#x1F3B2; dice</h3>
-                <div class="dicerow">
-                    <a href="#!" onClick="empty_dice()">0</a>
-                    <a href="#!" onClick="delete_die()">&minus;</a>
-                    <a href="#!" onClick="new_die()">+</a>
-                </div>
-                <div id="dice">
-                    <div class="die" onClick="roll_die(0)" style="background-color: yellow;">⋯</div>
-                </div>
-                <div class="dicerow">
-                    <a href="#!" onClick="roll_all_dice();" class="grow">roll all</a>
-                    <a href="#!" onClick="change_dice_colors();" class="shrink">&#x1F308;</a>
-                </div>
-            </div>
-
-            <div class="section">
-                <h3>&#x1f5d2; memo pad</h3>
-                <textarea id="memopad" rows="10"></textarea>
-            </div>
-
-            <div class="section" id="colorswap" onClick="lights()">
-                <a href="#!">toggle dark mode</a>
-            </div>
-
-            <div class="section" id="bottom">
-                <form onSubmit="sign_out()">
-                    <input type="submit" value="done playing" />
-                </form>
-
-                <span>
-                    last site update: 2023-02-03
-                </span>
-            </div>
-        </div>
+        <bitd-app></bitd-app>
     </body>
 
 </html>

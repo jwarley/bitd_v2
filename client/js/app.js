@@ -2,7 +2,13 @@ import {LitElement, html, map, css, ifDefined} from 'https://cdn.jsdelivr.net/gh
 
 export class App extends LitElement {
     static styles = css`
-        *:nth-of-type(1) {
+        #main {
+            display: flex;
+            flex-direction: column;
+            width: calc(80% - 1rem);
+            padding: 0.5rem;
+        }
+        bitd-clock-bar:nth-of-type(1) {
             --clock-color: var(--world-clock-color);
         }
         .playername {
@@ -158,16 +164,22 @@ export class App extends LitElement {
     }
 
     render() {
+        console.log("app.js:", this._players);
         return html`
-            <div class="topbar">
-                <a href="#!">⏱ clocks</a>
-                <a class="disabled" href="#!">🗺 map</a>
-                <a class="disabled" href="#!">📝 notes</a>
+            <div id="main">
+                <div class="topbar">
+                    <a href="#!">⏱ clocks</a>
+                    <a class="disabled" href="#!">🗺 map</a>
+                    <a class="disabled" href="#!">📝 notes</a>
+                </div>
+                <div class="clocks">
+                    ${this.render_players(ifDefined(this._players))}
+                </div>
+                <a class="syncbtn" @click=${this.request_full_sync}>force sync</a>
             </div>
-            <div class="clocks">
-                ${this.render_players(ifDefined(this._players))}
-            </div>
-            <a class="syncbtn" @click=${this.request_full_sync}>force sync</a>
+
+            <!-- only render once loaded -->
+            <bitd-sidebar players=${this._players}></bitd-sidebar>
         `;
     }
 }
