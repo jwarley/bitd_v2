@@ -10,6 +10,8 @@
         <script type="module" src="js/app.js"></script>
         <script type="module" src="js/clock.js"></script>
         <script type="module" src="js/clock_bar.js"></script>
+        <script type="module" src="js/userswitcher.js"></script>
+        <script src="js/notes.js"></script>
         <script src="js/dice.js"></script>
         <script src="js/darkmode.js"></script>
     </head>
@@ -42,8 +44,7 @@
 
             <div class="section">
                 <h3>&#x1f5d2; memo pad</h3>
-                <textarea rows="10"></textarea>
-                <span style="font-size:0.75rem;margin-bottom:2rem;">(does not save – this session only)</span>
+                <textarea id="memopad" rows="10"></textarea>
             </div>
 
             <div class="section" id="colorswap" onClick="lights()">
@@ -60,7 +61,7 @@
                 <!--     <input type="submit" value="force sync" /> -->
                 <!-- </form> -->
                 <span>
-                    last site update: 2023-01-31
+                    last site update: 2023-02-02
                 </span>
             </div>
         </div>
