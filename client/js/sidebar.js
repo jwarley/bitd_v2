@@ -239,8 +239,8 @@ export class App extends LitElement {
                         <div class="die" onClick="roll_die(0)" style="background-color: var(--dice-default-color);">⋯</div>
                     </div>
                     <div class="dicerow">
-                        <a onClick="roll_all_dice();" class="grow">roll all</a>
-                        <a onClick="change_dice_colors();" class="shrink">&#x1F308;</a>
+                        <a onClick="roll_all_dice()" class="grow">roll all</a>
+                        <a onClick="change_dice_colors()" class="shrink">&#x1F308;</a>
                     </div>
                 </div>
 
