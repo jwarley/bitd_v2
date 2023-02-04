@@ -5,6 +5,9 @@ html[data-theme='light'] {
     --button-color: #96ccff;
     --gray-button-color: #eee;
     --highlight-color: #f6fffe;
+    --highlight-color2: #f8f5ff;
+    --highlight-color3: #f9fff5;
+    --highlight-color4: #fff5f5;
     --clock-color: #a463f3;
     --world-clock-color: #6bcaa5;
     --dice-default-color: yellow;
@@ -18,6 +21,9 @@ html[data-theme='dark'] {
     --button-color: #20588e;
     --gray-button-color: #222;
     --highlight-color: #142b3a;
+    --highlight-color2: #20143a;
+    --highlight-color3: #223a14;
+    --highlight-color4: #3a1414;
     --clock-color: #673c9c; /* #9d3a5a */
     --world-clock-color: #257757;
     --dice-default-color: #dddd10;
@@ -42,3 +48,14 @@ div {
 bitd-app {
     width: 100%;
 }
+
+/*::-webkit-scrollbar,
+::-webkit-scrollbar-thumb {
+    width: 1px;
+    background: var(--text-color);
+    background-clip: padding-box;
+}
+::-webkit-scrollbar-track {
+    background: var(--page-color);
+}*/
+

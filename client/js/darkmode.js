@@ -14,4 +14,4 @@ function lights() {
 
     document.documentElement.setAttribute('data-theme', targetTheme)
     localStorage.setItem('theme', targetTheme);
-};
+}

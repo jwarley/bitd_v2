@@ -12,6 +12,8 @@ export class ClockBar extends LitElement {
             color: var(--text-color);
             background-color: var(--button-color);
             cursor: pointer;
+            z-index: 99;
+            margin-right: 0.25rem;
         }
         .clockholder {
             display: flex;

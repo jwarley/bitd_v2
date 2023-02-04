@@ -7,6 +7,7 @@ export class Clock extends LitElement {
             flex-direction: column;
             align-items: center;
             max-width: 10rem;
+            margin: 0 -0.75rem;
         }
         svg {
             overflow: visible;
@@ -112,7 +113,7 @@ export class Clock extends LitElement {
 
         return html`
             <div class="clock">
-                <svg @click="${this._increment}" @contextmenu="${this._decrement}" viewBox="-1.25 -1.25 2.5 2.5" height="100%" width="100%">${clock_face}</svg>
+                <svg @click="${this._increment}" @contextmenu="${this._decrement}" viewBox="-1.25 -1.25 2.5 2.5" height="85%" width="85%">${clock_face}</svg>
                 <div class="name">
                     ${this.task}
                 </div>

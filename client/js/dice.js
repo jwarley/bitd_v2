@@ -1,12 +1,12 @@
 var numdice = 1;
 
 function new_die() {
-    if (numdice <= 8) {
+    if (numdice < 6) {
         let dicerow = document.querySelector("bitd-app").shadowRoot.querySelector("bitd-sidebar").shadowRoot.querySelector("#sidebar .section #dice");
         dicerow.innerHTML += '<div class="die" onClick="roll_die(' + numdice + ')" style="background-color: var(--dice-default-color);">⋯</div>';
         numdice += 1;
     }
-};
+}
 
 function delete_die() {
     if (numdice >= 1) {
@@ -20,7 +20,7 @@ function delete_die() {
         }
         numdice -= 1;
     }
-};
+}
 
 function empty_dice() {
     numdice = 0;
@@ -32,37 +32,37 @@ function roll_die(num) {
     let dice = document.querySelector("bitd-app").shadowRoot.querySelector("bitd-sidebar").shadowRoot.querySelectorAll("#sidebar .section #dice .die");
     let oldnum = dice[num].innerHTML;
 
-    let roll1 = Math.floor(Math.random()*6)+1;
-    while (roll1 == oldnum) {
-        roll1 = Math.floor(Math.random()*6)+1;
+    var fake_choices = [1, 2, 3, 4, 5, 6];
+    const index = fake_choices.indexOf(oldnum);
+    if (index !== -1) {
+        fake_choices.splice(index, 1);
     }
-    let roll2 = Math.floor(Math.random()*6)+1;
-    while (roll2 == oldnum) {
-        roll2 = Math.floor(Math.random()*6)+1;
+
+    // truly random fisher-yates shuffle
+    for (let i = fake_choices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = fake_choices[i];
+        fake_choices[i] = fake_choices[j];
+        fake_choices[j] = temp;
     }
-    let roll3 = Math.floor(Math.random()*6)+1;
-    while (roll3 == oldnum) {
-        roll3 = Math.floor(Math.random()*6)+1;
-    }
-    let roll4 = Math.floor(Math.random()*6)+1;
-    while (roll4 == oldnum) {
-        roll4 = Math.floor(Math.random()*6)+1;
-    }
+
     setTimeout(function(){
-        dice[num].innerHTML = roll1;
+        dice[num].innerHTML = fake_choices[0];
     }, 75);
     setTimeout(function(){
-        dice[num].innerHTML = roll2;
+        dice[num].innerHTML = fake_choices[1];
     }, 150);
     setTimeout(function(){
-        dice[num].innerHTML = roll3;
+        dice[num].innerHTML = fake_choices[2];
     }, 225);
     setTimeout(function(){
-        dice[num].innerHTML = roll4;
+        dice[num].innerHTML = fake_choices[3];
     }, 300);
 
-    let newnum = Math.floor(Math.random()*6)+1;
-    dice[num].innerHTML = newnum;
+    setTimeout(function(){
+        let newnum = Math.floor(Math.random()*6)+1;
+        dice[num].innerHTML = newnum;
+    }, 375);
 }
 
 function roll_all_dice() {

@@ -15,15 +15,8 @@ export class App extends LitElement {
             font-size: 1.5rem;
             margin: 1rem 0;
         }
-        .syncbtn {
-            position: fixed;
-            top: 5px;
-            right: 5px;
-            font-size: 0.75rem;
-            color: var(--page-color);
-            z-index: 99;
-            cursor: pointer;
-            font-weight: bold;
+        .playername:first-child {
+            font-variant: small-caps;
         }
         .topbar {
             display: flex;
@@ -101,7 +94,10 @@ export class App extends LitElement {
         this._socket.addEventListener('message', (event) => {
             this.handle_server_message(event);
         });
-    };
+
+        // until a user selects, whoever has most clocks will be on top (besides world)
+        this._current_player_uuid = "";
+    }
 
     handle_server_message(event) {
         const update = JSON.parse(event.data);
@@ -112,9 +108,6 @@ export class App extends LitElement {
         else if (update.type == "FullUpdate") {
             let {type: _, ...players} = update
             this._players = players
-            this._current_player_uuid = Object.entries(players)[0][1].name != "world"
-                ? Object.entries(players)[0][0]
-                : Object.entries(players)[1][0];
         }
         else if (update.type == "ClockUpdate") {
             this._players[update.player_id].clocks[update.clock_id] = update.clock;
@@ -128,7 +121,7 @@ export class App extends LitElement {
             console.log("Unknown update packet received:")
             console.log(update)
         }
-    };
+    }
 
     _request_full_sync() {
         this._socket.send(JSON.stringify("FullSync"));
@@ -158,7 +151,6 @@ export class App extends LitElement {
             const b_length = Object.keys(b[1].clocks).length;
             sort_value = b_length - a_length; // negative: a before b; positive: b before a
         }
-        console.log("sorting with value", sort_value);
         return sort_value;
     }
 
@@ -183,10 +175,9 @@ export class App extends LitElement {
                 <div class="clocks">
                     ${this._render_players(this._players)}
                 </div>
-                <a class="syncbtn" @click="${this._request_full_sync}">force sync</a>
             </div>
 
-            <bitd-sidebar players="${JSON.stringify(this._players)}"></bitd-sidebar>
+            <bitd-sidebar players="${JSON.stringify(this._players)}""></bitd-sidebar>
         `;
     }
 }
