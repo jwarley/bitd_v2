@@ -61,7 +61,7 @@ export class App extends LitElement {
     `;
 
     static properties = {
-        _players: { state: true },
+        _players: { type: Object, state: true },
         _socket: {},
     }
 
@@ -70,11 +70,11 @@ export class App extends LitElement {
         this._socket = new WebSocket('ws://localhost:3000/ws');
 
         this._socket.addEventListener('open', (event) => {
-            this.request_full_sync();
+            this._request_full_sync();
         });
 
         this.addEventListener('full_sync', (event) => {
-            this.request_full_sync()
+            this._request_full_sync()
         });
 
         this.addEventListener('add_clock', (event) => {
@@ -124,16 +124,16 @@ export class App extends LitElement {
         }
     };
 
-    request_full_sync() {
+    _request_full_sync() {
         this._socket.send(JSON.stringify("FullSync"));
     }
 
-    render_clocks_of(player_tuple) {
+    _render_clocks_of(player_tuple) {
         const id = player_tuple[0]
         const player = player_tuple[1]
         return html`
             <div class="playername">${player.name}</div>
-            <bitd-clock-bar player_id=${id} clocks=${JSON.stringify(player.clocks)}></bitd-clock-bar>
+            <bitd-clock-bar player_id="${id}" clocks="${JSON.stringify(player.clocks)}"></bitd-clock-bar>
         `;
     }
 

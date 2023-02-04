@@ -35,7 +35,7 @@ export class Clock extends LitElement {
         task: { type: String },
         slices: { type: Number },
         progress: { type: Number },
-        _delete_unlocked: { state: true },
+        _delete_unlocked: { type: Boolean, state: true },
     }
 
     constructor() {
@@ -76,11 +76,11 @@ export class Clock extends LitElement {
     render() {
         // Construct the delete button depending on unlocked state
         const del_button = this._delete_unlocked ? html`
-            <div @click=${this._delete} class="del">
+            <div @click="${this._delete}" class="del">
                 ?
             </div>
         ` : html`
-            <div @click=${this._unlock_delete} class="del">
+            <div @click="${this._unlock_delete}" class="del">
                 &#x2715;
             </div>
         `;
@@ -112,7 +112,7 @@ export class Clock extends LitElement {
 
         return html`
             <div class="clock">
-                <svg @click=${this._increment} @contextmenu=${this._decrement} viewBox="-1.25 -1.25 2.5 2.5" height="100%" width="100%">${clock_face}</svg>
+                <svg @click="${this._increment}" @contextmenu="${this._decrement}" viewBox="-1.25 -1.25 2.5 2.5" height="100%" width="100%">${clock_face}</svg>
                 <div class="name">
                     ${this.task}
                 </div>

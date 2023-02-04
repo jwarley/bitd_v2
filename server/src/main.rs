@@ -193,9 +193,9 @@ async fn main() {
     // TODO:
     // temporary workaround until there's a good way to add players: uncomment this after the first
     // time you run the server
-    let _worldclock = bitd.add_player("world".to_string());
-    let _p1_id = bitd.add_player("branch".to_string());
-    let _p2_id = bitd.add_player("tiktok".to_string());
+    // let _worldclock = bitd.add_player("world".to_string());
+    // let _p1_id = bitd.add_player("branch".to_string());
+    // let _p2_id = bitd.add_player("tiktok".to_string());
 
     // use this to preview json reprs of newly defined types
     // dbg!(

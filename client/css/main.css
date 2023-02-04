@@ -20,7 +20,7 @@ html[data-theme='dark'] {
     --highlight-color: #142b3a;
     --clock-color: #673c9c; /* #9d3a5a */
     --world-clock-color: #257757;
-    --dice-default-color: #c3c309;
+    --dice-default-color: #dddd10;
     --symbol: "\263e\00a0";
 }
 

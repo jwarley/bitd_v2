@@ -50,13 +50,13 @@ export class ClockBar extends LitElement {
     render() {
         return html`
         <div style="display: flex;">
-            <div class="plusbutton" @click=${this._add_clock}>+</div>
+            <div class="plusbutton" @click="${this._add_clock}">+</div>
             <div class="clockholder">
                 ${map(Object.entries(this.clocks), (c) => {
                     const id = c[0];
                     const clock = c[1];
                     return html`
-                        <bitd-clock id=${id} player_id=${this.player_id} task=${clock.task} progress=${clock.progress} slices=${clock.slices}></bitd-clock>
+                        <bitd-clock id="${id}" player_id="${this.player_id}" task="${clock.task}" progress="${clock.progress}" slices="${clock.slices}"></bitd-clock>
                     `})}
             </div>
         </div>
