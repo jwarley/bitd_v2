@@ -123,6 +123,7 @@ export class App extends LitElement {
     `; // #lastupdate border code: https://stackoverflow.com/a/18064496
 
     static properties = {
+        players: { type: Object },
     }
 
     constructor() {
@@ -133,7 +134,7 @@ export class App extends LitElement {
         return html`
             <div id="sidebar">
                 <div class="section">
-                    <bitd-userswitcher></bitd-userswitcher>
+                    <bitd-userswitcher players="${JSON.stringify(this.players)}"></bitd-userswitcher>
                 </div>
 
                 <div class="section">

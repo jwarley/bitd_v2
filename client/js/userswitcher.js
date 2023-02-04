@@ -20,17 +20,28 @@ export class App extends LitElement {
         super();
     };
 
+    _select_player(event) {
+        const user = document.querySelector("bitd-app").shadowRoot.querySelector("bitd-sidebar").shadowRoot.querySelector("#sidebar bitd-userswitcher").shadowRoot.getElementById("userpicker").value;
+        this.dispatchEvent(new CustomEvent("select_player", {detail: user, bubbles: true, composed: true }));
+    };
+
     render() {
-        console.log("userswitcher.js:", this.players);
-        return html`
-            i am: 
-            <select id="userpicker">
-                ${map(this.players, (p) => {
-                    return html`
-                        <option value="${p}">${p}</option>
-                    `})}
-            </select>
-        `;
+        if (this.players == null) {
+            return html``;
+        } else {
+            return html`
+                i am:
+                <select @change="${this._select_player}" id="userpicker">
+                    ${map(Object.entries(this.players), (p) => {
+                        if (p[1].name != "world") {
+                            return html`
+                                <option value="${p[0]}">${p[1].name}</option>
+                            `;
+                        }
+                    })}
+                </select>
+            `;
+        }
     }
 }
 

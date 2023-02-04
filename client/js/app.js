@@ -62,6 +62,7 @@ export class App extends LitElement {
 
     static properties = {
         _players: { type: Object, state: true },
+        _current_player_uuid: { type: String, state: true },
         _socket: {},
     }
 
@@ -93,11 +94,13 @@ export class App extends LitElement {
             this._socket.send(event.detail);
         });
 
+        this.addEventListener('select_player', (event) => {
+            this._current_player_uuid = event.detail;
+        });
+
         this._socket.addEventListener('message', (event) => {
             this.handle_server_message(event);
         });
-
-        this._players = {};
     };
 
     handle_server_message(event) {
@@ -109,6 +112,9 @@ export class App extends LitElement {
         else if (update.type == "FullUpdate") {
             let {type: _, ...players} = update
             this._players = players
+            this._current_player_uuid = Object.entries(players)[0][1].name != "world"
+                ? Object.entries(players)[0][0]
+                : Object.entries(players)[1][0];
         }
         else if (update.type == "ClockUpdate") {
             this._players[update.player_id].clocks[update.clock_id] = update.clock;
@@ -137,34 +143,36 @@ export class App extends LitElement {
         `;
     }
 
-    render_players(players) {
-        let allplayers = Object.entries(players);
-        let player_list = [];
-        let world_clock = [];
-
-        for (const p of allplayers) {
-            if (p[1].name == "world") {
-                world_clock.push(p)
-            } else {
-                player_list.push(p);
-            }
-        }
-
-        // sort based on who has the most clocks
-        function player_sort(a, b) {
+    _player_sort(a, b) { // sort based on who has the most clocks
+        let sort_value = 0;
+        if (a[1].name == "world") { // world clock always first
+            sort_value = Number.NEGATIVE_INFINITY;
+        } else if (b[1].name == "world") {
+            sort_value = Number.POSITIVE_INFINITY;
+        } else if (a[0] == this._current_player_uuid) { // current player always second
+            sort_value = Number.NEGATIVE_INFINITY;
+        } else if (b[0] == this._current_player_uuid) {
+            sort_value = Number.POSITIVE_INFINITY;
+        } else {
             const a_length = Object.keys(a[1].clocks).length;
             const b_length = Object.keys(b[1].clocks).length;
-            return b_length - a_length; // negative: a before b; positive: b before a
+            sort_value = b_length - a_length; // negative: a before b; positive: b before a
         }
-        player_list.sort(function(a, b){return player_sort(a, b)});
+        console.log("sorting with value", sort_value);
+        return sort_value;
+    }
 
-        const player_order = world_clock.concat(player_list);
+    _render_players(players) {
+        if (players == null || this._current_player_uuid == null) {
+            return html``
+        }
 
-        return map(player_order, this.render_clocks_of);
+        let allplayers = Object.entries(players);
+        allplayers.sort(this._player_sort.bind(this));
+        return map(allplayers, this._render_clocks_of);
     }
 
     render() {
-        console.log("app.js:", this._players);
         return html`
             <div id="main">
                 <div class="topbar">
@@ -173,13 +181,12 @@ export class App extends LitElement {
                     <a class="disabled" href="#!">📝 notes</a>
                 </div>
                 <div class="clocks">
-                    ${this.render_players(ifDefined(this._players))}
+                    ${this._render_players(this._players)}
                 </div>
-                <a class="syncbtn" @click=${this.request_full_sync}>force sync</a>
+                <a class="syncbtn" @click="${this._request_full_sync}">force sync</a>
             </div>
 
-            <!-- only render once loaded -->
-            <bitd-sidebar players=${this._players}></bitd-sidebar>
+            <bitd-sidebar players="${JSON.stringify(this._players)}"></bitd-sidebar>
         `;
     }
 }
