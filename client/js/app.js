@@ -6,6 +6,7 @@ export class App extends LitElement {
             display: flex;
             flex-direction: column;
             width: calc(80% - 1rem);
+            height: calc(100vh - 1rem);
             padding: 0.5rem;
         }
         bitd-clock-bar:nth-of-type(1) {

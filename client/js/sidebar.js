@@ -8,6 +8,7 @@ export class App extends LitElement {
             background: var(--page-color);
             width: 20%;
             height: 100vh;
+            overflow-y: scroll;
             position: fixed;
             right: 0;
             top: 0;
@@ -30,9 +31,13 @@ export class App extends LitElement {
             border-top: 1px solid var(--text-color);
             border-bottom: 1px solid var(--text-color);
         }
+
         .section:first-child {
             padding: 0.4rem 0 0.5rem;
             border: 10px outset var(--highlight-color);
+        }
+        #sidebar > div:nth-last-of-type(2) {
+            margin-bottom: 2.5rem;
         }
 
         .dicerow {
@@ -140,21 +145,20 @@ export class App extends LitElement {
             font-size: 2rem;
             cursor: pointer;
             z-index: 999;
+            text-shadow: 0 0 10px var(--page-color), 0 0 20px var(--page-color), 0 0 30px var(--page-color), 0 0 40px var(--page-color), 0 0 50px var(--page-color);
         }
 
         #lastupdate {
             display: inline-block;
             background: var(--page-color);
-            position: absolute;
+            position: fixed;
             text-align: center;
-            margin: 1rem 0 0;
             font-size: 0.8rem;
-            width: 100%;
+            width: 20%;
             line-height: 1.75rem;
             bottom: 0px;
+            right: 0px;
             vertical-align: bottom;
-            left: 50%;
-            transform: translateX(-50%);
             background-image: linear-gradient(to right, white 50%, rgba(255,255,255,0) 0%);
             background-position: top;
             background-size: 10px 1px;
@@ -268,7 +272,7 @@ export class App extends LitElement {
                 </div>
 
                 <div id="lastupdate">
-                    <a href="https://github.com/jwarley/bitd_v2" target="_blank">ver. 2023.02.04</a>
+                    <a href="https://github.com/jwarley/bitd_v2" target="_blank">ver. 2023.02.06</a>
                 </div>
             </div>
 
