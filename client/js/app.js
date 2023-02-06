@@ -1,4 +1,4 @@
-import {LitElement, html, map, css, ifDefined} from 'https://cdn.jsdelivr.net/gh/lit/dist@2/all/lit-all.min.js';
+import {LitElement, html, map, css, ifDefined} from './lit-all.min.js';
 
 export class App extends LitElement {
     static styles = css`
