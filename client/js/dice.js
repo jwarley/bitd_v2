@@ -75,10 +75,15 @@ function change_dice_colors() {
     let dice = document.querySelector("bitd-app").shadowRoot.querySelector("bitd-sidebar").shadowRoot.querySelectorAll("#sidebar .section #dice .die");
     let num = dice.length;
 
+    const colorbefore = dice[0].style.backgroundColor;
     const colors = ["tomato", "orange", "dodgerblue", "greenyellow", "lawngreen", "lavenderblush",
     "lemonchiffon", "lightblue", "lightcoral", "lightcyan", "lightpink", "lightskyblue",
     "lightsalmon", "navajowhite", "papayawhip", "paleturquoise", "powderblue", "thistle"];
-    const bgcolor = colors[Math.floor(Math.random()*colors.length)];
+    var bgcolor = colors[Math.floor(Math.random()*colors.length)];
+
+    while (bgcolor == colorbefore) {
+        bgcolor = colors[Math.floor(Math.random()*colors.length)];
+    }
 
     for (var i = 0; i < num; i++) {
         dice[i].style.backgroundColor = bgcolor;

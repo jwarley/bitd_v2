@@ -158,7 +158,7 @@ export class App extends LitElement {
             bottom: 0px;
             right: 0px;
             vertical-align: bottom;
-            background-image: linear-gradient(to right, white 50%, rgba(255,255,255,0) 0%);
+            background-image: linear-gradient(to right, var(--text-color) 50%, transparent 0%);
             background-position: top;
             background-size: 10px 1px;
             background-repeat: repeat-x;
@@ -232,7 +232,7 @@ export class App extends LitElement {
                 </div>
 
                 <div class="section">
-                    <h3>&#x1F3B2; dice</h3>
+                    <h3>&#x1f3b2; dice</h3>
                     <div class="dicerow">
                         <a onClick="empty_dice()">0</a>
                         <a onClick="delete_die()">&minus;</a>

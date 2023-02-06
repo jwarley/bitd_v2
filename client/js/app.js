@@ -235,9 +235,9 @@ export class App extends LitElement {
         return html`
             <div id="main">
                 <div id="topbar">
-                    <a @click="${(e) => this._show_tab(1)}">⏱ clocks</a>
-                    <a @click="${(e) => this._show_tab(2)}">🗺 map</a>
-                    <a @click="${(e) => this._show_tab(3)}">📝 notes</a>
+                    <a @click="${(e) => this._show_tab(1)}">&#9201; clocks</a>
+                    <a @click="${(e) => this._show_tab(2)}">&#x1f5fa; map</a>
+                    <a class="disabled">&#x1f4dd; notes</a>
                 </div>
                 <div id="clocks">
                     ${this._render_players(this._players)}
