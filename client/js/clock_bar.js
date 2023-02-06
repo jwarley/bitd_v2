@@ -33,8 +33,9 @@ export class ClockBar extends LitElement {
 
     _add_clock() {
         let task = window.prompt("What is the clock for?");
+        if (task === null) return;
         task = task.trim();
-        if (task === null || task == "") return;
+        if (task === "") return;
 
         let slices = parseInt(window.prompt("How many slices?", "4"));
         if (slices > 50) {

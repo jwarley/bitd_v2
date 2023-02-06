@@ -184,13 +184,15 @@ export class App extends LitElement {
         console.log("Forced a full sync with the server.")
 
         const syncbutton = document.querySelector("bitd-app").shadowRoot.querySelector("bitd-sidebar").shadowRoot.querySelector("#tool3 span");
+        syncbutton.disabled = true;
         const old_label = syncbutton.innerHTML;
         syncbutton.innerHTML = "&check;";
         syncbutton.style.fontWeight = "bold";
 
         setTimeout(function(){
-            syncbutton.innerHTML = old_label;
+            syncbutton.innerHTML = "force sync";
             syncbutton.style.fontWeight = "normal";
+            syncbutton.disabled = false;
         }, 750);
     }
 
