@@ -113,6 +113,11 @@ export class App extends LitElement {
 
         // until a user selects, whoever has most clocks will be on top (besides world)
         this._current_player_uuid = "";
+
+        // this is a great idea, do not email me
+        window.add_player = (name) => {
+            this._socket.send(JSON.stringify({ "AddPlayer": name }));
+        }
     }
 
     handle_server_message(event) {
@@ -133,11 +138,17 @@ export class App extends LitElement {
             delete this._players[update.player_id].clocks[update.clock_id];
             this.requestUpdate();
         }
+        else if (update.type == "AddPlayerUpdate") {
+            console.log("received new player", update);
+            this._players[update.player_id] = update.player_data;
+            this.requestUpdate();
+        }
         else {
             console.log("Unknown update packet received:")
             console.log(update)
         }
     }
+
 
     _request_full_sync() {
         this._socket.send(JSON.stringify("FullSync"));

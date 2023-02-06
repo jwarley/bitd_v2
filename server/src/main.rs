@@ -8,7 +8,7 @@ use axum::{
     Router,
 };
 use axum_extra::routing::SpaRouter;
-use std::path::Path;
+use glob::glob;
 // use axum_typed_websockets::{Message, WebSocket, WebSocketUpgrade}
 use dashmap::DashMap;
 use futures::{sink::SinkExt, stream::StreamExt};
@@ -83,6 +83,17 @@ impl Bitd {
         player_id
     }
 
+    // /// Rename a player and return the old name if successful
+    // fn rename_player(&mut self, player_id: PlayerId, name: String) -> Option<&str> {
+    //     match self.players.get(&player_id) {
+    //         Some(old_data) => {
+    //             let new_data = PlayerData { name, ..*old_data };
+    //             Ok(self.players.insert(player_id, new_data).unwrap()["name"])
+    //         }
+    //         None => None,
+    //     }
+    // }
+
     fn add_clock(&self, player_id: PlayerId, task: String, slices: u8) -> ClockId {
         self.players
             .get_mut(&player_id)
@@ -134,6 +145,7 @@ enum Instruction {
     DeleteClock(PlayerId, ClockId),
     IncrementClock(PlayerId, ClockId),
     DecrementClock(PlayerId, ClockId),
+    AddPlayer(String),
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -141,6 +153,7 @@ enum SyncRequest {
     /// Messages broadcast to the send task to trigger a state update to any websocket clients
     ClockSync(PlayerId, ClockId),
     DeleteClockSync(PlayerId, ClockId),
+    AddPlayerSync(PlayerId),
     FullSync,
 }
 
@@ -158,30 +171,36 @@ enum UpdatePacket<'a> {
         clock_id: ClockId,
     },
     FullUpdate(&'a DashMap<PlayerId, PlayerData>),
+    AddPlayerUpdate {
+        player_id: PlayerId,
+        player_data: &'a PlayerData,
+    },
 }
 
 #[tokio::main]
 async fn main() {
-    // Set up application state for use with with_state().
-    let (tx, _rx) = broadcast::channel(100);
+    // use this to preview json reprs of newly defined types
+    // dbg!(
+    //     serde_json::to_string_pretty(&Instruction::AddClock(p1_id, "test clock".to_string(), 9))
+    //         .unwrap()
+    // );
 
     // Load players from backup
     let players = DashMap::new();
     fs::create_dir_all("./players").expect("Could not create server/players/ directory.");
-    for file in fs::read_dir("./players").unwrap() {
-        let path = file.as_ref().unwrap().path();
-        if let Some(extension) = path.extension() {
-            if extension == "toml" {
-                let uuid = Uuid::parse_str(
-                    Path::new(&file.as_ref().unwrap().file_name())
-                        .file_stem()
-                        .unwrap()
-                        .to_str()
-                        .unwrap(),
-                )
-                .unwrap();
-                let player = toml::from_str(&fs::read_to_string(&file.unwrap().path()).unwrap()).unwrap();
-                players.insert(uuid, player);
+
+    for path in glob("./players/*.toml")
+        .expect("Failed to read glob pattern.")
+        .filter_map(Result::ok)
+    {
+        if let (Some(stem), Ok(contents)) = (
+            path.file_stem().unwrap().to_str(), // unwrap is safe bc we know path matches *.toml
+            &fs::read_to_string(&path),
+        ) {
+            if let Ok(uuid) = Uuid::try_parse(stem) {
+                if let Ok(player) = toml::from_str(contents) {
+                    players.insert(uuid, player);
+                }
             }
         }
     }
@@ -190,19 +209,8 @@ async fn main() {
         players: Arc::new(players),
     };
 
-    // TODO:
-    // temporary workaround until there's a good way to add players: uncomment this after the first
-    // time you run the server
-    // let _worldclock = bitd.add_player("world".to_string());
-    // let _p1_id = bitd.add_player("branch".to_string());
-    // let _p2_id = bitd.add_player("tiktok".to_string());
-
-    // use this to preview json reprs of newly defined types
-    // dbg!(
-    //     serde_json::to_string_pretty(&Instruction::AddClock(p1_id, "test clock".to_string(), 9))
-    //         .unwrap()
-    // );
-
+    // Set up application state for use with with_state().
+    let (tx, _rx) = broadcast::channel(100);
     let shared_state = Arc::new(AppState { bitd, tx });
 
     let spa = SpaRouter::new("", "../client");
@@ -289,13 +297,28 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                         break;
                     };
                 }
+                SyncRequest::AddPlayerSync(player_id) => {
+                    if sender
+                        .send(Message::Text(
+                            serde_json::to_string(&UpdatePacket::AddPlayerUpdate {
+                                player_id,
+                                player_data: &*bitd.players.get(&player_id).unwrap(),
+                            })
+                            .unwrap(),
+                        ))
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    };
+                }
             }
         }
     });
 
     // Clone things we want to pass (move) to the receiving task.
     let tx = state.tx.clone();
-    let bitd = state.bitd.clone();
+    let mut bitd = state.bitd.clone();
 
     // This task receives instrutions from the client, performs the appropriate modifications to
     // app state, and communicates to the send_task to dispatch an appropriate update to the
@@ -346,6 +369,13 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                             .send(SyncRequest::ClockSync(player_id, clock_id))
                             .is_err()
                         {
+                            break;
+                        };
+                    }
+                    Instruction::AddPlayer(name) => {
+                        let player_id = bitd.add_player(name);
+                        bitd.backup_player(player_id);
+                        if tx.send(SyncRequest::AddPlayerSync(player_id)).is_err() {
                             break;
                         };
                     }
