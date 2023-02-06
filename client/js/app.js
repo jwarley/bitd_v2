@@ -1,12 +1,14 @@
 import {LitElement, html, map, css} from './lit-all.min.js';
 
+var MAP_URL = "doskvol_map.png";
+
 export class App extends LitElement {
     static styles = css`
         #main {
             display: flex;
             flex-direction: column;
             width: calc(80% - 1rem);
-            height: calc(100vh - 1rem);
+            height: 100%;
             padding: 0.5rem;
         }
         .playername {
@@ -51,21 +53,14 @@ export class App extends LitElement {
             padding: 3px 8px;
         }
 
-        #clocks {
-            display: block;
-        }
         #map {
             width: 100%;
-            display: none;
         }
         #map img {
             display: block;
             margin: 0.5rem 0;
             width: 100%;
             cursor: crosshair;
-        }
-        #notes {
-            display: none;
         }
     `;
 
@@ -210,9 +205,26 @@ export class App extends LitElement {
         return map(allplayers, this._render_clocks_of);
     }
 
+    _map_click(event) {
+        let name = window.prompt("Name of landmark?")
+        if (name === null) return;
+        name = name.trim();
+        if (name === "") return;
+
+        let rect = event.target.getBoundingClientRect();
+        // won't work when sidebar is hidden for now - pixels are different. maybe solve by multiplying by 0.8?
+        var x = event.offsetX;
+        var y = event.offsetY;
+
+        console.log("Creating \"" + name + "\" at " + x + ", " + y);
+        const message = JSON.stringify({ "AddLandmark": [name, x, y] });
+        this.dispatchEvent(new CustomEvent("add_landmark", {detail: message, bubbles: true, composed: true }));
+
+    }
+
     _render_map() {
         return html`
-            <img src="img/doskvol_map.png">
+            <img @click="${this._map_click}" src="img/${MAP_URL}">
         `;
     }
 

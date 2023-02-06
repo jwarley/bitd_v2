@@ -1,6 +1,7 @@
 import {LitElement, html, css} from './lit-all.min.js';
 
 export class App extends LitElement {
+    // #lastupdate border code: https://stackoverflow.com/a/18064496
     static styles = css`
         #sidebar {
             display: flex;
@@ -139,7 +140,7 @@ export class App extends LitElement {
         #showsidebar {
             display: none;
             position: fixed;
-            right: 10px;
+            right: 15px;
             bottom: 10px;
             font-size: 2rem;
             cursor: pointer;
@@ -167,7 +168,22 @@ export class App extends LitElement {
             color: var(--text-color);
             text-decoration: none;
         }
-    `; // #lastupdate border code: https://stackoverflow.com/a/18064496
+
+        .disabled {
+            cursor: not-allowed !important;
+            filter: grayscale(100%) brightness(250%) !important;
+            -webkit-filter: grayscale(100%) brightness(250%) !important;
+        }
+        .disabled input {
+            color: var(--gray-text-color) !important;
+            text-decoration: line-through !important;
+            filter: brightness(30%) !important;
+            -webkit-filter: brightness(30%) !important;
+        }
+        .disabled > form {
+            pointer-events: none;
+        }
+    `;
 
     static properties = {
         players: { type: Object },
@@ -259,16 +275,16 @@ export class App extends LitElement {
                 </div>
 
                 <div class="section" id="tool2" @click="${this._hide_sidebar}">
-                    <span>hide sidebar</span>
+                    <span>hide sidebar &raquo;</span>
                 </div>
 
                 <div class="section" id="tool3" @click="${this._request_full_sync}">
-                    <span>force sync</span>
+                    <span>force sync &circlearrowright;</span>
                 </div>
 
-                <div class="section" id="tool4">
+                <div class="section disabled" id="tool4">
                     <form onSubmit="sign_out()">
-                        <input type="submit" value="done playing" />
+                        <input type="submit" value="done playing &#x23fb;" />
                     </form>
                 </div>
 
