@@ -33,8 +33,7 @@ export class App extends LitElement {
         }
 
         .section:first-child {
-            padding: 0.4rem 0 0.5rem;
-            border: 10px outset var(--highlight-color);
+            padding: 0;
         }
         #sidebar > div:nth-last-of-type(2) {
             margin-bottom: 2.5rem;

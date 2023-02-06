@@ -1,23 +1,25 @@
-import {LitElement, html, map, css} from './lit-all.min.js';
+import {LitElement, html, map, css, ifDefined} from './lit-all.min.js';
 
 export class App extends LitElement {
     static styles = css`
         select {
             color: var(--text-color);
-            border: 1px solid transparent;
-            border-radius: 2px;
+            border: 10px outset var(--highlight-color);
             font-size: 2rem;
             text-align: center;
             text-align: -webkit-center;
-            width: 95%;
+            width: 100%;
+            padding: 0.5rem 0;
             -webkit-appearance: none;
             -moz-appearance: none;
             background: transparent;
-            padding: 0 1rem;
             direction rtl;
         }
         select:focus-visible {
             outline: 0;
+        }
+        select.selected {
+            border-style: groove;
         }
     `;
 
@@ -34,34 +36,61 @@ export class App extends LitElement {
         const userpicker = sidebar.querySelector("#sidebar bitd-userswitcher").shadowRoot.getElementById("userpicker");
         this.dispatchEvent(new CustomEvent("select_player", {detail: userpicker.value, bubbles: true, composed: true }));
 
-         // needed for some browsers like safari
+        // save current player selection in localstorage
+        localStorage.setItem('i_am', userpicker.value);
+
+         // remove the dropdown text
         for (var i = 0; i < userpicker.length; i++) {
             if (userpicker.options[i].value == "select player...") {
                 userpicker.remove(i);
+                break;
             }
         }
 
-        // re-style to show it's been selected
-        const topsection = sidebar.querySelector("#sidebar .section");
-        topsection.style.borderStyle = "groove";
+        // re-style to show a selection has been made
+        userpicker.style.borderStyle = "groove";
+    }
+
+    _user_selected(uuid) {
+        if (localStorage.getItem("i_am") == uuid) {
+            this.dispatchEvent(new CustomEvent("select_player", {detail: uuid, bubbles: true, composed: true }));
+            return "selected";
+        } else {
+            return null;
+        }
     }
 
     render() {
         if (this.players == null) {
             return html``;
         } else {
-            return html`
-                <select @change="${this._select_player}" id="userpicker">
-                    <option disabled selected>select player...</option>
-                    ${map(Object.entries(this.players), (p) => {
-                        if (p[1].name != "world") {
-                            return html`
-                                <option value="${p[0]}">${p[1].name}</option>
-                            `;
-                        }
-                    })}
-                </select>
-            `;
+            const loaded_uuid = localStorage.getItem("i_am");
+            if (loaded_uuid) { // don't render the "select player..." dropdown in the first place
+                return html`
+                    <select class="selected" @change="${this._select_player}" id="userpicker">
+                        ${map(Object.entries(this.players), (p) => {
+                            if (p[1].name != "world") { // 'selected' is a boolean attribute - don't render if it's not the one we want
+                                return html`
+                                    <option value="${p[0]}" selected="${ifDefined(this._user_selected(p[0]))}">${p[1].name}</option>
+                                `;
+                            }
+                        })}
+                    </select>
+                `;
+            } else {
+                return html`
+                    <select @change="${this._select_player}" id="userpicker">
+                        <option disabled selected>select player...</option>
+                        ${map(Object.entries(this.players), (p) => {
+                            if (p[1].name != "world") { // we know none of the options should be pre-selected
+                                return html`
+                                    <option value="${p[0]}">${p[1].name}</option>
+                                `;
+                            }
+                        })}
+                    </select>
+                `;
+            }
         }
     }
 }

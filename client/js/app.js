@@ -1,4 +1,4 @@
-import {LitElement, html, map, css, ifDefined} from './lit-all.min.js';
+import {LitElement, html, map, css} from './lit-all.min.js';
 
 export class App extends LitElement {
     static styles = css`
@@ -81,6 +81,8 @@ export class App extends LitElement {
 
         this._socket.addEventListener('open', (event) => {
             this._request_full_sync();
+            const tab_num = localStorage.getItem("last_tab") || 1;
+            this._show_tab(tab_num);
         });
 
         this.addEventListener('full_sync', (event) => {
@@ -159,13 +161,22 @@ export class App extends LitElement {
         const player = player_tuple[1]
         if (player.name == "world") {
             return html`
-                <div data-clocktype="world" class="playername">${player.name}</div>
+                <div
+                    data-clocktype="world"
+                    class="playername"
+                    oncontextmenu="navigator.clipboard.writeText('${id}'); return false;">
+                    ${player.name}
+                </div>
                 <bitd-clock-bar clocktype="world" player_id="${id}" clocks="${JSON.stringify(player.clocks)}"></bitd-clock-bar>
             `;
         }
         else {
             return html`
-                <div class="playername">${player.name}</div>
+                <div
+                    class="playername"
+                    oncontextmenu="navigator.clipboard.writeText('${id}'); return false;">
+                    ${player.name}
+                </div>
                 <bitd-clock-bar player_id="${id}" clocks="${JSON.stringify(player.clocks)}"></bitd-clock-bar>
             `;
         }
@@ -216,6 +227,8 @@ export class App extends LitElement {
 
         const notes = root.getElementById("notes");
         notes.style.display = num == 3 ? "block" : "none";
+
+        localStorage.setItem('last_tab', num);
     }
 
     render() {
