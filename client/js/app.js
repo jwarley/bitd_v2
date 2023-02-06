@@ -9,14 +9,11 @@ export class App extends LitElement {
             height: calc(100vh - 1rem);
             padding: 0.5rem;
         }
-        bitd-clock-bar:nth-of-type(1) {
-            --clock-color: var(--world-clock-color);
-        }
         .playername {
             font-size: 1.5rem;
             margin: 1rem 0;
         }
-        .playername:first-child {
+        .playername[data-clocktype="world"] {
             font-variant: small-caps;
         }
         #topbar {
@@ -158,10 +155,18 @@ export class App extends LitElement {
     _render_clocks_of(player_tuple) {
         const id = player_tuple[0]
         const player = player_tuple[1]
-        return html`
-            <div class="playername">${player.name}</div>
-            <bitd-clock-bar player_id="${id}" clocks="${JSON.stringify(player.clocks)}"></bitd-clock-bar>
-        `;
+        if (player.name == "world") {
+            return html`
+                <div data-clocktype="world" class="playername">${player.name}</div>
+                <bitd-clock-bar clocktype="world" player_id="${id}" clocks="${JSON.stringify(player.clocks)}"></bitd-clock-bar>
+            `;
+        }
+        else {
+            return html`
+                <div class="playername">${player.name}</div>
+                <bitd-clock-bar player_id="${id}" clocks="${JSON.stringify(player.clocks)}"></bitd-clock-bar>
+            `;
+        }
     }
 
     _player_sort(a, b) { // sort based on who has the most clocks

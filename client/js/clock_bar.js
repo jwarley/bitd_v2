@@ -24,6 +24,7 @@ export class ClockBar extends LitElement {
     static properties = {
         clocks: { type: Object },
         player_id: { type: String },
+        clocktype: { type: String },
     }
 
     constructor() {
@@ -50,11 +51,21 @@ export class ClockBar extends LitElement {
     }
 
     render() {
+        const clocks_ordered = Object.keys(this.clocks).sort().reduce(
+            (obj, key) => {
+                    obj[key] = this.clocks[key];
+                    return obj;
+                },
+                {}
+        );
+
+        const worldclock_override = this.clocktype == "world" ? ' --clock-color: var(--world-clock-color);' : null;
+
         return html`
-        <div style="display: flex;">
+        <div style="display: flex;${worldclock_override}">
             <div class="plusbutton" @click="${this._add_clock}">+</div>
             <div class="clockholder">
-                ${map(Object.entries(this.clocks), (c) => {
+                ${map(Object.entries(clocks_ordered), (c) => {
                     const id = c[0];
                     const clock = c[1];
                     return html`
