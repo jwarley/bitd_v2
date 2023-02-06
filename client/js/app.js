@@ -56,11 +56,13 @@ export class App extends LitElement {
         }
         #map {
             width: 100%;
-            margin-top: 0.5rem;
             display: none;
         }
         #map img {
+            display: block;
+            margin: 0.5rem 0;
             width: 100%;
+            cursor: crosshair;
         }
         #notes {
             display: none;
@@ -197,8 +199,10 @@ export class App extends LitElement {
         return map(allplayers, this._render_clocks_of);
     }
 
-    _render_map(players) {
-        return html`does anybody have a map`
+    _render_map() {
+        return html`
+            <img src="img/doskvol_map.png">
+        `;
     }
 
     _show_tab(num) {
@@ -226,7 +230,7 @@ export class App extends LitElement {
                     ${this._render_players(this._players)}
                 </div>
                 <div id="map">
-                <img src="img/doskvol_map.png">
+                    ${this._render_map()}
                 </div>
                 <div id="notes">
                 </div>
