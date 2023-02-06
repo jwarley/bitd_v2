@@ -18,26 +18,27 @@ export class App extends LitElement {
         .playername:first-child {
             font-variant: small-caps;
         }
-        .topbar {
+        #topbar {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-around;
         }
-        .topbar a {
+        #topbar a {
             color: #000;
+            flex: 1 1 auto;
+            margin: 0;
+            padding: 0.25rem 0.25rem;
+            color: var(--text-color);
+            background-color: var(--button-color);
             text-align: center;
             font-size: 1.5rem;
             text-decoration: none;
-            color: var(--text-color);
-            background-color: var(--button-color);
-            margin: 0;
-            padding: 0.25rem 0.25rem;
-            flex: 1 1 auto;
+            cursor: pointer;
         }
-        .topbar a:not(:first-child):not(:last-child) {
+        #topbar a:not(:first-child):not(:last-child) {
             margin: 0 0.5rem;
         }
-        .topbar a.disabled {
+        #topbar a.disabled {
             color: var(--gray-text-color);
             text-decoration: line-through;
             cursor: not-allowed;
@@ -50,6 +51,21 @@ export class App extends LitElement {
             border: 1px solid var(--text-color);
             border-radius: 2px;
             padding: 3px 8px;
+        }
+
+        #clocks {
+            display: block;
+        }
+        #map {
+            width: 100%;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        #map img {
+            width: 100%;
+        }
+        #notes {
+            display: none;
         }
     `;
 
@@ -164,16 +180,38 @@ export class App extends LitElement {
         return map(allplayers, this._render_clocks_of);
     }
 
+    _render_map(players) {
+        return html`does anybody have a map`
+    }
+
+    _show_tab(num) {
+        const root = document.querySelector("bitd-app").shadowRoot;
+
+        const clocks = root.getElementById("clocks");
+        clocks.style.display = num == 1 ? "block" : "none";
+
+        const map = root.getElementById("map");
+        map.style.display = num == 2 ? "block" : "none";
+
+        const notes = root.getElementById("notes");
+        notes.style.display = num == 3 ? "block" : "none";
+    }
+
     render() {
         return html`
             <div id="main">
-                <div class="topbar">
-                    <a href="#!">⏱ clocks</a>
-                    <a class="disabled" href="#!">🗺 map</a>
-                    <a class="disabled" href="#!">📝 notes</a>
+                <div id="topbar">
+                    <a @click="${(e) => this._show_tab(1)}">⏱ clocks</a>
+                    <a @click="${(e) => this._show_tab(2)}">🗺 map</a>
+                    <a @click="${(e) => this._show_tab(3)}">📝 notes</a>
                 </div>
-                <div class="clocks">
+                <div id="clocks">
                     ${this._render_players(this._players)}
+                </div>
+                <div id="map">
+                <img src="img/doskvol_map.png">
+                </div>
+                <div id="notes">
                 </div>
             </div>
 
