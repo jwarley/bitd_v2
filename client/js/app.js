@@ -1,6 +1,5 @@
 import {LitElement, html, map, css} from './lit-all.min.js';
-
-var MAP_URL = "doskvol_map.png";
+import * as bitd_map from "./map.js";
 
 export class App extends LitElement {
     static styles = css`
@@ -205,29 +204,6 @@ export class App extends LitElement {
         return map(allplayers, this._render_clocks_of);
     }
 
-    _map_click(event) {
-        let name = window.prompt("Name of landmark?")
-        if (name === null) return;
-        name = name.trim();
-        if (name === "") return;
-
-        let rect = event.target.getBoundingClientRect();
-        // won't work when sidebar is hidden for now - pixels are different. maybe solve by multiplying by 0.8?
-        var x = event.offsetX;
-        var y = event.offsetY;
-
-        console.log("Creating \"" + name + "\" at " + x + ", " + y);
-        const message = JSON.stringify({ "AddLandmark": [name, x, y] });
-        this.dispatchEvent(new CustomEvent("add_landmark", {detail: message, bubbles: true, composed: true }));
-
-    }
-
-    _render_map() {
-        return html`
-            <img @click="${this._map_click}" src="img/${MAP_URL}">
-        `;
-    }
-
     _show_tab(num) {
         const root = document.querySelector("bitd-app").shadowRoot;
 
@@ -255,7 +231,7 @@ export class App extends LitElement {
                     ${this._render_players(this._players)}
                 </div>
                 <div id="map">
-                    ${this._render_map()}
+                    ${bitd_map._render_map()}
                 </div>
                 <div id="notes">
                 </div>

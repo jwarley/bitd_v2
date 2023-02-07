@@ -33,7 +33,7 @@ export class ClockBar extends LitElement {
 
     _add_clock() {
         let task = window.prompt("What is the clock for?");
-        if (task === null) return;
+        if (task == null) return;
         task = task.trim();
         if (task === "") return;
 

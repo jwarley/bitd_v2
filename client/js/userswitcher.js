@@ -65,7 +65,8 @@ export class App extends LitElement {
             return html``;
         } else {
             const loaded_uuid = localStorage.getItem("i_am");
-            if (loaded_uuid) { // don't render the "select player..." dropdown in the first place
+            const valid_player = Object.keys(this.players).includes(loaded_uuid) ? true : false;
+            if (loaded_uuid && valid_player) { // don't render the "select player..." dropdown in the first place
                 return html`
                     <select class="selected" @change="${this._select_player}" id="userpicker">
                         ${map(Object.entries(this.players), (p) => {
