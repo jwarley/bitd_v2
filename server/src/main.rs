@@ -30,11 +30,11 @@ struct Clock {
 
 impl Clock {
     fn new(task: String, slices: u8) -> Self {
-        return Clock {
+        Clock {
             task,
             slices,
             progress: 0,
-        };
+        }
     }
 
     fn increment(&mut self) {
@@ -54,10 +54,10 @@ struct PlayerData {
 
 impl PlayerData {
     fn new(name: String) -> Self {
-        return PlayerData {
+        PlayerData {
             name,
             clocks: DashMap::new(),
-        };
+        }
     }
 
     fn add_clock(&mut self, task: String, slices: u8) -> ClockId {
@@ -151,27 +151,27 @@ enum Instruction {
 #[derive(Serialize, Debug, Clone)]
 enum SyncRequest {
     /// Messages broadcast to the send task to trigger a state update to any websocket clients
-    ClockSync(PlayerId, ClockId),
-    DeleteClockSync(PlayerId, ClockId),
-    AddPlayerSync(PlayerId),
-    FullSync,
+    Clock(PlayerId, ClockId),
+    DeleteClock(PlayerId, ClockId),
+    AddPlayer(PlayerId),
+    Full,
 }
 
 #[derive(Serialize, Debug, Clone)]
 #[serde(tag = "type")]
 enum UpdatePacket<'a> {
     /// Pieces of state sent from the server to the client after a change.
-    ClockUpdate {
+    Clock {
         player_id: PlayerId,
         clock_id: ClockId,
         clock: &'a Clock,
     },
-    DeleteClockUpdate {
+    DeleteClock {
         player_id: PlayerId,
         clock_id: ClockId,
     },
-    FullUpdate(&'a DashMap<PlayerId, PlayerData>),
-    AddPlayerUpdate {
+    Full(&'a DashMap<PlayerId, PlayerData>),
+    AddPlayer {
         player_id: PlayerId,
         player_data: &'a PlayerData,
     },
@@ -248,11 +248,10 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
     let mut send_task = tokio::spawn(async move {
         while let Ok(msg) = rx.recv().await {
             match msg {
-                SyncRequest::FullSync => {
+                SyncRequest::Full => {
                     if sender
                         .send(Message::Text(
-                            serde_json::to_string(&UpdatePacket::FullUpdate(&*bitd.players))
-                                .unwrap(),
+                            serde_json::to_string(&UpdatePacket::Full(&bitd.players)).unwrap(),
                         ))
                         .await
                         .is_err()
@@ -260,13 +259,13 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                         break;
                     };
                 }
-                SyncRequest::ClockSync(player_id, clock_id) => {
+                SyncRequest::Clock(player_id, clock_id) => {
                     if sender
                         .send(Message::Text(
-                            serde_json::to_string(&UpdatePacket::ClockUpdate {
+                            serde_json::to_string(&UpdatePacket::Clock {
                                 player_id,
                                 clock_id,
-                                clock: &*bitd
+                                clock: &bitd
                                     .players
                                     .get(&player_id)
                                     .unwrap()
@@ -282,10 +281,10 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                         break;
                     };
                 }
-                SyncRequest::DeleteClockSync(player_id, clock_id) => {
+                SyncRequest::DeleteClock(player_id, clock_id) => {
                     if sender
                         .send(Message::Text(
-                            serde_json::to_string(&UpdatePacket::DeleteClockUpdate {
+                            serde_json::to_string(&UpdatePacket::DeleteClock {
                                 player_id,
                                 clock_id,
                             })
@@ -297,12 +296,12 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                         break;
                     };
                 }
-                SyncRequest::AddPlayerSync(player_id) => {
+                SyncRequest::AddPlayer(player_id) => {
                     if sender
                         .send(Message::Text(
-                            serde_json::to_string(&UpdatePacket::AddPlayerUpdate {
+                            serde_json::to_string(&UpdatePacket::AddPlayer {
                                 player_id,
-                                player_data: &*bitd.players.get(&player_id).unwrap(),
+                                player_data: &bitd.players.get(&player_id).unwrap(),
                             })
                             .unwrap(),
                         ))
@@ -328,17 +327,14 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
             if let Ok(inst) = serde_json::from_str(&text) {
                 match inst {
                     Instruction::FullSync => {
-                        if tx.send(SyncRequest::FullSync).is_err() {
+                        if tx.send(SyncRequest::Full).is_err() {
                             break;
                         };
                     }
                     Instruction::AddClock(player_id, task, slices) => {
                         let clock_id = bitd.add_clock(player_id, task, slices);
                         bitd.backup_player(player_id);
-                        if tx
-                            .send(SyncRequest::ClockSync(player_id, clock_id))
-                            .is_err()
-                        {
+                        if tx.send(SyncRequest::Clock(player_id, clock_id)).is_err() {
                             break;
                         };
                     }
@@ -346,7 +342,7 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                         bitd.delete_clock(player_id, clock_id);
                         bitd.backup_player(player_id);
                         if tx
-                            .send(SyncRequest::DeleteClockSync(player_id, clock_id))
+                            .send(SyncRequest::DeleteClock(player_id, clock_id))
                             .is_err()
                         {
                             break;
@@ -355,27 +351,21 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                     Instruction::IncrementClock(player_id, clock_id) => {
                         bitd.increment_clock(player_id, clock_id);
                         bitd.backup_player(player_id);
-                        if tx
-                            .send(SyncRequest::ClockSync(player_id, clock_id))
-                            .is_err()
-                        {
+                        if tx.send(SyncRequest::Clock(player_id, clock_id)).is_err() {
                             break;
                         };
                     }
                     Instruction::DecrementClock(player_id, clock_id) => {
                         bitd.decrement_clock(player_id, clock_id);
                         bitd.backup_player(player_id);
-                        if tx
-                            .send(SyncRequest::ClockSync(player_id, clock_id))
-                            .is_err()
-                        {
+                        if tx.send(SyncRequest::Clock(player_id, clock_id)).is_err() {
                             break;
                         };
                     }
                     Instruction::AddPlayer(name) => {
                         let player_id = bitd.add_player(name);
                         bitd.backup_player(player_id);
-                        if tx.send(SyncRequest::AddPlayerSync(player_id)).is_err() {
+                        if tx.send(SyncRequest::AddPlayer(player_id)).is_err() {
                             break;
                         };
                     }

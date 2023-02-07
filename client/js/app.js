@@ -126,19 +126,19 @@ export class App extends LitElement {
         if (update.type == "Log") {
             console.log("INFO:", update);
         }
-        else if (update.type == "FullUpdate") {
+        else if (update.type == "Full") {
             let {type: _, ...players} = update
             this._players = players
         }
-        else if (update.type == "ClockUpdate") {
+        else if (update.type == "Clock") {
             this._players[update.player_id].clocks[update.clock_id] = update.clock;
             this.requestUpdate();
         }
-        else if (update.type == "DeleteClockUpdate") {
+        else if (update.type == "DeleteClock") {
             delete this._players[update.player_id].clocks[update.clock_id];
             this.requestUpdate();
         }
-        else if (update.type == "AddPlayerUpdate") {
+        else if (update.type == "AddPlayer") {
             console.log("received new player", update);
             this._players[update.player_id] = update.player_data;
             this.requestUpdate();
