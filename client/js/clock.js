@@ -42,12 +42,19 @@ export class Clock extends LitElement {
     constructor() {
         super();
         this._delete_unlocked = false;
-        // don't select text on double click, which we might do on clock faces
-        document.addEventListener('mousedown', function(event) {
-            if (event.detail > 1) {
-                event.preventDefault();
-            }
-        }, false);
+        // don't select text on double click (on clock containers only), which we might do on clock faces
+        const clockbars = document.querySelector("bitd-app").shadowRoot.querySelectorAll("bitd-clock-bar");
+        clockbars.forEach(clockbar => {
+            const clockcontainers = clockbar.shadowRoot.querySelectorAll("bitd-clock");
+            clockcontainers.forEach(clock => {
+                let clockface = clock.shadowRoot;
+                clockface.addEventListener('mousedown', function(event) {
+                    if (event.detail > 1) {
+                        event.preventDefault();
+                    }
+                }, false);
+            });
+        });
     }
 
     _increment() {

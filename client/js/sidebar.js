@@ -289,7 +289,7 @@ export class App extends LitElement {
                 </div>
 
                 <div id="lastupdate">
-                    <a href="https://github.com/jwarley/bitd_v2" target="_blank">ver. 2023.02.06</a>
+                    <a href="https://github.com/jwarley/bitd_v2" target="_blank">ver. 2023.02.07</a>
                 </div>
             </div>
 

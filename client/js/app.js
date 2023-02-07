@@ -53,6 +53,7 @@ export class App extends LitElement {
         }
 
         #map {
+            display: none;
             width: 100%;
         }
         #map img {
@@ -60,6 +61,9 @@ export class App extends LitElement {
             margin: 0.5rem 0;
             width: 100%;
             cursor: crosshair;
+        }
+        #notes {
+            display: none;
         }
     `;
 
@@ -145,12 +149,11 @@ export class App extends LitElement {
         }
     }
 
-
     _request_full_sync() {
         this._socket.send(JSON.stringify("FullSync"));
     }
 
-    _render_clocks_of(player_tuple) {
+    _render_clocks_of(player_tuple) { // why can we not use lit @events or other ${this._functions()} inside here???
         const id = player_tuple[0]
         const player = player_tuple[1]
         if (player.name == "world") {
