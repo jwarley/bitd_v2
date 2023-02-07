@@ -69,6 +69,10 @@ impl PlayerData {
     fn delete_clock(&mut self, id: ClockId) {
         self.clocks.remove(&id);
     }
+
+    fn rename(&mut self, name: String) -> String {
+        std::mem::replace(&mut self.name, name)
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -83,16 +87,10 @@ impl Bitd {
         player_id
     }
 
-    // /// Rename a player and return the old name if successful
-    // fn rename_player(&mut self, player_id: PlayerId, name: String) -> Option<&str> {
-    //     match self.players.get(&player_id) {
-    //         Some(old_data) => {
-    //             let new_data = PlayerData { name, ..*old_data };
-    //             Ok(self.players.insert(player_id, new_data).unwrap()["name"])
-    //         }
-    //         None => None,
-    //     }
-    // }
+    /// Rename a player and return the old name if successful
+    fn rename_player(&mut self, player_id: PlayerId, name: String) -> Option<String> {
+        self.players.get_mut(&player_id).map(|mut p| p.rename(name))
+    }
 
     fn add_clock(&self, player_id: PlayerId, task: String, slices: u8) -> ClockId {
         self.players
@@ -146,21 +144,24 @@ enum Instruction {
     IncrementClock(PlayerId, ClockId),
     DecrementClock(PlayerId, ClockId),
     AddPlayer(String),
+    RenamePlayer(PlayerId, String),
 }
 
 #[derive(Serialize, Debug, Clone)]
 enum SyncRequest {
     /// Messages broadcast to the send task to trigger a state update to any websocket clients
+    Full,
     Clock(PlayerId, ClockId),
     DeleteClock(PlayerId, ClockId),
     AddPlayer(PlayerId),
-    Full,
+    RenamePlayer(PlayerId),
 }
 
 #[derive(Serialize, Debug, Clone)]
 #[serde(tag = "type")]
 enum UpdatePacket<'a> {
     /// Pieces of state sent from the server to the client after a change.
+    Full(&'a DashMap<PlayerId, PlayerData>),
     Clock {
         player_id: PlayerId,
         clock_id: ClockId,
@@ -170,20 +171,24 @@ enum UpdatePacket<'a> {
         player_id: PlayerId,
         clock_id: ClockId,
     },
-    Full(&'a DashMap<PlayerId, PlayerData>),
-    AddPlayer {
+    Player {
         player_id: PlayerId,
         player_data: &'a PlayerData,
+    },
+    PlayerName {
+        player_id: PlayerId,
+        player_name: &'a str,
     },
 }
 
 #[tokio::main]
 async fn main() {
     // use this to preview json reprs of newly defined types
-    // dbg!(
-    //     serde_json::to_string_pretty(&Instruction::AddClock(p1_id, "test clock".to_string(), 9))
-    //         .unwrap()
-    // );
+    // dbg!(serde_json::to_string_pretty(&Instruction::RenamePlayer(
+    //     Uuid::now_v7(),
+    //     "himbo".to_string()
+    // ))
+    // .unwrap());
 
     // Load players from backup
     let players = DashMap::new();
@@ -299,9 +304,24 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                 SyncRequest::AddPlayer(player_id) => {
                     if sender
                         .send(Message::Text(
-                            serde_json::to_string(&UpdatePacket::AddPlayer {
+                            serde_json::to_string(&UpdatePacket::Player {
                                 player_id,
                                 player_data: &bitd.players.get(&player_id).unwrap(),
+                            })
+                            .unwrap(),
+                        ))
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    };
+                }
+                SyncRequest::RenamePlayer(player_id) => {
+                    if sender
+                        .send(Message::Text(
+                            serde_json::to_string(&UpdatePacket::PlayerName {
+                                player_id,
+                                player_name: &bitd.players.get(&player_id).unwrap().name,
                             })
                             .unwrap(),
                         ))
@@ -366,6 +386,13 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                         let player_id = bitd.add_player(name);
                         bitd.backup_player(player_id);
                         if tx.send(SyncRequest::AddPlayer(player_id)).is_err() {
+                            break;
+                        };
+                    }
+                    Instruction::RenamePlayer(player_id, name) => {
+                        bitd.rename_player(player_id, name);
+                        bitd.backup_player(player_id);
+                        if tx.send(SyncRequest::RenamePlayer(player_id)).is_err() {
                             break;
                         };
                     }

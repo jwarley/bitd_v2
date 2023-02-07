@@ -118,6 +118,9 @@ export class App extends LitElement {
         window.add_player = (name) => {
             this._socket.send(JSON.stringify({ "AddPlayer": name }));
         }
+        window.rename_player = (id, name) => {
+            this._socket.send(JSON.stringify({ "RenamePlayer": [id, name] }));
+        }
     }
 
     handle_server_message(event) {
@@ -138,9 +141,14 @@ export class App extends LitElement {
             delete this._players[update.player_id].clocks[update.clock_id];
             this.requestUpdate();
         }
-        else if (update.type == "AddPlayer") {
+        else if (update.type == "Player") {
             console.log("received new player", update);
             this._players[update.player_id] = update.player_data;
+            this.requestUpdate();
+        }
+        else if (update.type == "PlayerName") {
+            console.log("Renaming player", update);
+            this._players[update.player_id]["name"] = update.player_name;
             this.requestUpdate();
         }
         else {
