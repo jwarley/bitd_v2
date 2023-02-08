@@ -238,9 +238,15 @@ export class App extends LitElement {
 
         // this is a great idea, do not email me
         window.add_player = (name) => {
-            if (name.toLowerCase() == "world" && Object.keys(this._players).filter((p) => {return p.name == "world"}).length > 0) {
-                alert("World player already exists!");
-                return
+            name = name.toString().trim();
+            if (name == "") {
+                console.log("Cannot add a player with a blank name.")
+                return;
+            }
+            if (name.toLowerCase() == "world" &&
+                Object.entries(this._players).filter((p) => {return p[1].name == "world"}).length > 0) {
+                    console.log("World player already exists!");
+                    return;
             }
             this._socket.send(JSON.stringify({ "AddPlayer": name }));
         }
@@ -248,9 +254,14 @@ export class App extends LitElement {
             this._socket.send(JSON.stringify({ "RemovePlayer": id }));
         }
         window.rename_player = (id, name) => {
-            if (name.toLowerCase() == "world") {
-                alert("Look at me I'm so cool I'm gonna break the website LOL ok dude");
-                return
+            name = name.toString().trim();
+            if (name.toLowerCase() == "world" &&
+                Object.entries(this._players).filter((p) => {return p[1].name == "world"}).length > 0) {
+                    console.log("Look at me I'm so cool I'm gonna break the website LOL ok dude");
+                    return;
+            } else if (name == "") {
+                console.log("Cannot use a blank name for a player.")
+                return;
             }
             this._socket.send(JSON.stringify({ "RenamePlayer": [id, name] }));
         }

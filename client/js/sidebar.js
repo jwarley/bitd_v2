@@ -1,6 +1,8 @@
 import {LitElement, html, css} from './lit-all.min.js';
 import { MAP_URL, MAP_DARK_URL } from './map.js'
 
+export const VERSION = "ver. 2023.02.08";
+
 export class App extends LitElement {
     // #lastupdate border code: https://stackoverflow.com/a/18064496
     static styles = css`
@@ -292,7 +294,7 @@ export class App extends LitElement {
                 </div>
 
                 <div id="lastupdate">
-                    <a href="https://github.com/jwarley/bitd_v2" target="_blank">ver. 2023.02.07</a>
+                    <a href="https://github.com/jwarley/bitd_v2" target="_blank">${VERSION}</a>
                 </div>
             </div>
 
