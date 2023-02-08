@@ -1,5 +1,5 @@
 import {LitElement, html, map, css} from './lit-all.min.js';
-import * as bitd_map from "./map.js";
+import * as map_tab from "./map.js";
 
 export class App extends LitElement {
     static styles = css`
@@ -153,7 +153,7 @@ export class App extends LitElement {
             this.requestUpdate();
         }
         else if (update.type == "Player") {
-            console.log("received new player", update);
+            console.log("Added new player", update);
             this._players[update.player_id] = update.player_data;
             this.requestUpdate();
         }
@@ -257,13 +257,13 @@ export class App extends LitElement {
                     ${this._render_players(this._players)}
                 </div>
                 <div id="map">
-                    ${bitd_map._render_map()}
+                    ${map_tab._render_map()}
                 </div>
                 <div id="notes">
                 </div>
             </div>
 
-            <bitd-sidebar players="${JSON.stringify(this._players)}""></bitd-sidebar>
+            <bitd-sidebar players="${JSON.stringify(this._players)}"></bitd-sidebar>
         `;
     }
 }

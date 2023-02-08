@@ -1,4 +1,5 @@
 import {LitElement, html, css} from './lit-all.min.js';
+import { MAP_URL, MAP_DARK_URL } from './map.js'
 
 export class App extends LitElement {
     // #lastupdate border code: https://stackoverflow.com/a/18064496
@@ -192,7 +193,30 @@ export class App extends LitElement {
 
     constructor() {
         super();
+
         this._socket = new WebSocket('ws://localhost:3000/ws');
+
+        var storedTheme = localStorage.getItem('theme') ||
+            (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        if (storedTheme) {
+            document.documentElement.setAttribute('data-theme', storedTheme);
+        }
+    }
+
+    _lights() {
+        var currentTheme = document.documentElement.getAttribute("data-theme");
+        var targetTheme = "light";
+
+        var mapimg =  document.querySelector("bitd-app").shadowRoot.querySelector("#map img");
+        mapimg.src = MAP_URL;
+
+        if (currentTheme === "light") {
+            targetTheme = "dark";
+            mapimg.src = MAP_DARK_URL;
+        }
+
+        document.documentElement.setAttribute('data-theme', targetTheme)
+        localStorage.setItem('theme', targetTheme);
     }
 
     _request_full_sync() {
@@ -270,7 +294,7 @@ export class App extends LitElement {
                     <textarea id="memopad" rows="8"></textarea>
                 </div>
 
-                <div class="section" id="tool1" onClick="lights()">
+                <div class="section" id="tool1" @click="${this._lights}">
                     <span>toggle dark mode</span>
                 </div>
 

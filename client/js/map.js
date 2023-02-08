@@ -1,12 +1,22 @@
 import {LitElement, html, map, css} from './lit-all.min.js';
 
-var MAP_URL = "img/doskvol_map.png";
-var MAP_ALLOW_DETAILED_ZOOM = false;
+export const MAP_URL = "./img/doskvol_map.png";
+export const MAP_DARK_URL = "./img/doskvol_map_dark.png";
+export const MAP_ALLOW_DETAILED_ZOOM = false;
 
 export function _render_map() {
     return html`
-        <img @click="${this._map_click}" @contextmenu=${this._map_rightclick} src="${MAP_URL}">
+        <img @click="${this._map_click}" @contextmenu=${this._map_rightclick} src="${this._get_map_url()}">
     `;
+}
+
+export function _get_map_url() {
+    var storedTheme = localStorage.getItem('theme') || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    if (storedTheme == "dark") {
+        return MAP_DARK_URL;
+    } else {
+        return MAP_URL;
+    }
 }
 
 export function _switch_image(event, path) {
@@ -26,8 +36,8 @@ export function _map_rightclick(event) {
         event.preventDefault();
 
         const currentmap = event.target;
-        if (currentmap.getAttribute("src") !== MAP_URL) {
-            currentmap.setAttribute("src", MAP_URL); // go back to home, undo _switch_img()
+        if (currentmap.getAttribute("src") !== MAP_URL && currentmap.getAttribute("src") !== MAP_DARK_URL) {
+            currentmap.setAttribute("src", _get_map_url()); // go back to home, undo _switch_img()
             currentmap.setAttribute('style', 'cursor: crosshair;');
             // var lms = document.getElementsByClassName("landmark");
             // for (var i = 0; i < lms.length; i++) {
@@ -83,7 +93,7 @@ export function _map_rightclick(event) {
 
 export function _map_click(event) {
     const currentmap = event.target;
-    if (currentmap.getAttribute("src") !== MAP_URL) {
+    if (currentmap.getAttribute("src") !== MAP_URL && currentmap.getAttribute("src") !== MAP_DARK_URL) {
         _map_rightclick(event);
     }
     else {
