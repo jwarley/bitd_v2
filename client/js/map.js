@@ -2,7 +2,7 @@ import {LitElement, html, map, css} from './lit-all.min.js';
 
 export const MAP_URL = "./img/doskvol_map.png";
 export const MAP_DARK_URL = "./img/doskvol_map_dark.png";
-export const MAP_ALLOW_DETAILED_ZOOM = false;
+export const MAP_ALLOW_DETAILED_ZOOM = false; // images in img/maps/ are only light mode versions
 
 export function _render_map() {
     return html`
