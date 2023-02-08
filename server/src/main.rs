@@ -92,6 +92,13 @@ impl Bitd {
         self.players.get_mut(&player_id).map(|mut p| p.rename(name))
     }
 
+    fn remove_player(&mut self, player_id: PlayerId) {
+        self.players.remove(&player_id);
+        if fs::remove_file(format!("./players/{}.toml", player_id)).is_err() {
+            println!("Failed to remove user file: {}", player_id)
+        };
+    }
+
     fn add_clock(&self, player_id: PlayerId, task: String, slices: u8) -> ClockId {
         self.players
             .get_mut(&player_id)
@@ -145,6 +152,7 @@ enum Instruction {
     DecrementClock(PlayerId, ClockId),
     AddPlayer(String),
     RenamePlayer(PlayerId, String),
+    RemovePlayer(PlayerId),
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -155,6 +163,7 @@ enum SyncRequest {
     DeleteClock(PlayerId, ClockId),
     AddPlayer(PlayerId),
     RenamePlayer(PlayerId),
+    RemovePlayer(PlayerId),
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -179,16 +188,15 @@ enum UpdatePacket<'a> {
         player_id: PlayerId,
         player_name: &'a str,
     },
+    RemovePlayer {
+        player_id: PlayerId,
+    },
 }
 
 #[tokio::main]
 async fn main() {
     // use this to preview json reprs of newly defined types
-    // dbg!(serde_json::to_string_pretty(&Instruction::RenamePlayer(
-    //     Uuid::now_v7(),
-    //     "himbo".to_string()
-    // ))
-    // .unwrap());
+    // dbg!(serde_json::to_string(&Instruction::RemovePlayer(Uuid::now_v7())).unwrap());
 
     // Load players from backup
     let players = DashMap::new();
@@ -331,6 +339,18 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                         break;
                     };
                 }
+                SyncRequest::RemovePlayer(player_id) => {
+                    if sender
+                        .send(Message::Text(
+                            serde_json::to_string(&UpdatePacket::RemovePlayer { player_id })
+                                .unwrap(),
+                        ))
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    };
+                }
             }
         }
     });
@@ -393,6 +413,12 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                         bitd.rename_player(player_id, name);
                         bitd.backup_player(player_id);
                         if tx.send(SyncRequest::RenamePlayer(player_id)).is_err() {
+                            break;
+                        };
+                    }
+                    Instruction::RemovePlayer(player_id) => {
+                        bitd.remove_player(player_id);
+                        if tx.send(SyncRequest::RemovePlayer(player_id)).is_err() {
                             break;
                         };
                     }

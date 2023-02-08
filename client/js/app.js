@@ -116,9 +116,20 @@ export class App extends LitElement {
 
         // this is a great idea, do not email me
         window.add_player = (name) => {
+            if (name.toLowerCase() == "world" && Object.keys(this._players).filter((p) => {return p.name == "world"}).length > 0) {
+                alert("World player already exists!");
+                return
+            }
             this._socket.send(JSON.stringify({ "AddPlayer": name }));
         }
+        window.remove_player = (id) => {
+            this._socket.send(JSON.stringify({ "RemovePlayer": id }));
+        }
         window.rename_player = (id, name) => {
+            if (name.toLowerCase() == "world") {
+                alert("Look at me I'm so cool I'm gonna break the website LOL ok dude");
+                return
+            }
             this._socket.send(JSON.stringify({ "RenamePlayer": [id, name] }));
         }
     }
@@ -149,6 +160,10 @@ export class App extends LitElement {
         else if (update.type == "PlayerName") {
             console.log("Renaming player", update);
             this._players[update.player_id]["name"] = update.player_name;
+            this.requestUpdate();
+        }
+        else if (update.type == "RemovePlayer") {
+            delete this._players[update.player_id];
             this.requestUpdate();
         }
         else {
