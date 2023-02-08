@@ -1,33 +1,42 @@
 html[data-theme='light'] {
-    --text-color: #000;
-    --gray-text-color: #666;
+    --text-color: black;
+    --gray-text-color: #333;
     --page-color: #fff;
     --button-color: #96ccff;
     --gray-button-color: #eee;
     --highlight-color: #f6fffe;
-    --highlight-color2: #f8f5ff;
-    --highlight-color3: #f9fff5;
-    --highlight-color4: #fff5f5;
+    --highlight-color2: #def0ee;
     --clock-color: #a463f3;
     --world-clock-color: #6bcaa5;
     --dice-default-color: yellow;
     --symbol: "\2600\00a0";
+    --note-misc: #ffadad;
+    --note-person: #ffd6a5;
+    --note-place: #fdffb6;
+    --note-boogins: #caffbf;
+    --note-item: #a0c4ff;
+    --note-concept: #9bf6ff;
+    --note-event: #ffc6ff;
 }
-
 html[data-theme='dark'] {
-    --text-color: #fff;
-    --gray-text-color: #aaa;
+    --text-color: white;
+    --gray-text-color: #ccc;
     --page-color: #1d2025;
     --button-color: #20588e;
     --gray-button-color: #222;
     --highlight-color: #142b3a;
-    --highlight-color2: #20143a;
-    --highlight-color3: #223a14;
-    --highlight-color4: #3a1414;
+    --highlight-color2: #141b1f;
     --clock-color: #673c9c; /* #9d3a5a */
     --world-clock-color: #257757;
-    --dice-default-color: #dddd10;
+    --dice-default-color: gold;
     --symbol: "\263e\00a0";
+    --note-misc: #8f3131;
+    --note-person: #854a04;
+    --note-place: #858818;
+    --note-boogins: #176e05;
+    --note-item: #143874;
+    --note-concept: #1a666d;
+    --note-event: #6a366a;
 }
 
 html {

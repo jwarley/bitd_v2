@@ -126,12 +126,6 @@ export class App extends LitElement {
             margin-bottom: 0.75rem;
             cursor: pointer;
         }
-        .section#tool3 {
-            background: var(--highlight-color3);
-        }
-        .section#tool4 {
-            background: var(--highlight-color4);
-        }
         .section input {
             background: none;
             border: 0;
@@ -168,21 +162,6 @@ export class App extends LitElement {
         #lastupdate a {
             color: var(--text-color);
             text-decoration: none;
-        }
-
-        .disabled {
-            cursor: not-allowed !important;
-            filter: grayscale(100%) brightness(250%) !important;
-            -webkit-filter: grayscale(100%) brightness(250%) !important;
-        }
-        .disabled input {
-            color: var(--gray-text-color) !important;
-            text-decoration: line-through !important;
-            filter: brightness(30%) !important;
-            -webkit-filter: brightness(30%) !important;
-        }
-        .disabled > form {
-            pointer-events: none;
         }
     `;
 
@@ -306,7 +285,7 @@ export class App extends LitElement {
                     <span>force sync &circlearrowright;</span>
                 </div>
 
-                <div class="section disabled" id="tool4">
+                <div class="section" id="tool4">
                     <form onSubmit="sign_out()">
                         <input type="submit" value="done playing &#x23fb;" />
                     </form>
