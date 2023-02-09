@@ -42,12 +42,12 @@ export class ClockBar extends LitElement {
         task = task.trim();
         if (task === "") return;
 
-        let slices = parseInt(window.prompt("How many slices?", "4"));
+        let slices = parseInt(window.prompt("How many segments?", "4"));
         if (slices > 50) {
-            window.alert("Can't make a clock with over 50 slices!");
+            window.alert("Can't make a clock with over 50 segments!");
         }
         else if (slices < 1) {
-            window.alert("Can't make a clock with less than 1 slice!");
+            window.alert("Can't make a clock with less than 1 segment!");
         }
         else {
             slices = slices == NaN ? 4 : slices;

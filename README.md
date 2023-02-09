@@ -17,7 +17,7 @@ For usage online (for an actual game/campaign), install Rust on a web server, cl
 
 ### Basic setup & Clocks tab
 
-The main screen of the HUD displays a game's [progress clocks](https://bladesinthedark.com/progress-clocks), grouped by player. Left clicking a clock adds a segment to it; right clicking removes a segment. All clocks are public and changes are immediately visible to all players.
+The main screen of the HUD displays a game's [progress clocks](https://bladesinthedark.com/progress-clocks), grouped by player. Left clicking a clock ticks a segment on it; right clicking removes a segment. All clocks are public and changes are immediately visible to all players.
 
 The following functions can be run from your browser's [Console](https://developer.chrome.com/docs/devtools/console/javascript/) to set up a game:
 
@@ -50,7 +50,7 @@ The map image can be customized in `client/js/map.js`, along with other settings
 
 ### Sidebar
 
-Various functionalities are available through the sidebar: the user switcher, up to 6 rollable dice, a private/personal memo pad, a toggle for dark mode and hiding the sidebar, and other tools. All information is preserved between sessions and saved in the browser's [localStorage](https://developer.chrome.com/docs/devtools/storage/localstorage/).
+Various functionalities are available through the sidebar: the user switcher, up to 6 rollable dice, a private/personal memo pad, toggles for dark mode and hiding the sidebar, and other tools. All information is preserved between sessions and saved in the browser's [localStorage](https://developer.chrome.com/docs/devtools/storage/localstorage/).
 
 ## License
 
