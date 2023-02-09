@@ -3,7 +3,7 @@ import { MAP_URL, MAP_DARK_URL } from './map.js'
 
 export const VERSION = "ver. 2023.02.08";
 
-export class App extends LitElement {
+export class Sidebar extends LitElement {
     // #lastupdate border code: https://stackoverflow.com/a/18064496
     static styles = css`
         #sidebar {
@@ -147,7 +147,7 @@ export class App extends LitElement {
 
         #lastupdate {
             display: inline-block;
-            background: var(--page-color);
+            background: var(--page-color-translucent);
             position: fixed;
             text-align: center;
             font-size: 0.8rem;
@@ -294,7 +294,7 @@ export class App extends LitElement {
                 </div>
 
                 <div id="lastupdate">
-                    <a href="https://github.com/jwarley/bitd_v2" target="_blank">${VERSION}</a>
+                    <a href="https://github.com/jwarley/bitd_v2" target="_blank">blades-hud ${VERSION}</a>
                 </div>
             </div>
 
@@ -303,4 +303,4 @@ export class App extends LitElement {
     }
 }
 
-customElements.define('bitd-sidebar', App);
+customElements.define('bitd-sidebar', Sidebar);

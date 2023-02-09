@@ -2,6 +2,7 @@ html[data-theme='light'] {
     --text-color: black;
     --gray-text-color: #333;
     --page-color: #fff;
+    --page-color-translucent: rgba(255, 255, 255, 0.85);
     --button-color: #96ccff;
     --gray-button-color: #eee;
     --highlight-color: #f6fffe;
@@ -22,6 +23,7 @@ html[data-theme='dark'] {
     --text-color: white;
     --gray-text-color: #ccc;
     --page-color: #1d2025;
+    --page-color-translucent: rgba(29, 32, 37, 0.85);
     --button-color: #20588e;
     --gray-button-color: #222;
     --highlight-color: #142b3a;

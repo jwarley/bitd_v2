@@ -2,6 +2,11 @@ import {LitElement, html, map, css} from './lit-all.min.js';
 
 export class ClockBar extends LitElement {
     static styles = css`
+        bitd-clock {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
         .plusbutton {
             text-align: center;
             display: flex;
@@ -13,7 +18,7 @@ export class ClockBar extends LitElement {
             background-color: var(--button-color);
             cursor: pointer;
             z-index: 99;
-            margin-right: 0.25rem;
+            margin-right: 0.5rem;
         }
         .clockholder {
             display: flex;

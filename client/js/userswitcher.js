@@ -1,6 +1,6 @@
 import {LitElement, html, map, css, ifDefined} from './lit-all.min.js';
 
-export class App extends LitElement {
+export class UserSwitcher extends LitElement {
     static styles = css`
         select {
             color: var(--text-color);
@@ -96,4 +96,4 @@ export class App extends LitElement {
     }
 }
 
-customElements.define('bitd-userswitcher', App);
+customElements.define('bitd-userswitcher', UserSwitcher);

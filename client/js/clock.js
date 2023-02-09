@@ -6,10 +6,11 @@ export class Clock extends LitElement {
             display: flex;
             flex-direction: column;
             align-items: center;
-            max-width: 10rem;
-            margin: 0 -0.75rem;
+            max-width: 8rem;
+            margin: 0 0.5rem;
         }
         svg {
+            width: 130px;
             overflow: visible;
             display: block;
         }
@@ -21,6 +22,7 @@ export class Clock extends LitElement {
             width: 1.5rem;
             height: 1.5rem;
             line-height: 1.5rem;
+            margin: 0 auto;
             text-align: center;
             cursor: pointer;
             color: var(--text-color);
@@ -120,12 +122,12 @@ export class Clock extends LitElement {
 
         return html`
             <div class="clock">
-                <svg @click="${this._increment}" @contextmenu="${this._decrement}" viewBox="-1.25 -1.25 2.5 2.5" height="85%" width="85%">${clock_face}</svg>
+                <svg @click="${this._increment}" @contextmenu="${this._decrement}" viewBox="-1.05 -1.05 2.1 2.1" height="100%" width="100%">${clock_face}</svg>
                 <div class="name">
                     ${this.task}
                 </div>
-                ${del_button}
             </div>
+            ${del_button}
         `;
     }
 }
