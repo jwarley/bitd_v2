@@ -23,12 +23,10 @@ The following functions can be run from your browser's [Console](https://develop
 
 * **`add_player("Maile")`**, to add a player named `Maile`.
   * Adding a player named `world` will create a section for world clocks that are styled differently from player clocks and always displayed at the top of the list.
-* ~~**`remove_player("uuid")`**~~, to remove a player with the [ID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Format) `uuid`.
+* **`remove_player("uuid")`**, to remove a player with the [ID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Format) `uuid`.
   * A player's ID can be copied to the clipboard by right-clicking the player name, above their list of clocks.
-* ~~**`rename_player("uuid", "Ezra")`**~~, to change a player with ID `uuid` to be named `Ezra`.
+* **`rename_player("uuid", "Ezra")`**, to change a player with ID `uuid` to be named `Ezra`.
   * ~~A player can also be renamed by double-clicking the player name.~~
-
-\* Removing and renaming players will be supported soon, and currently must be done by editing the .toml files in `server/players/`.
 
 After adding players to a game, select your role using the user switcher at the top of the sidebar and begin playing.
 
