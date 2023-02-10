@@ -26,7 +26,7 @@ The following functions can be run from your browser's [Console](https://develop
 * **`remove_player("uuid")`**, to remove a player with the [ID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Format) `uuid`.
   * A player's ID can be copied to the clipboard by right-clicking the player name, above their list of clocks.
 * **`rename_player("uuid", "Ezra")`**, to change a player with ID `uuid` to be named `Ezra`.
-  * ~~A player can also be renamed by double-clicking the player name.~~
+  * A player can also be renamed by double-clicking the player name.
 
 After adding players to a game, select your role using the user switcher at the top of the sidebar and begin playing.
 

@@ -10,6 +10,14 @@ export class App extends LitElement {
             height: 100%;
             padding: 0.5rem;
         }
+        .playername {
+            width: max-content;
+            cursor: default;
+        }
+        .playername::selection {
+            color: var(--page-color);
+            background: var(--text-color);
+        }
         .playername:first-child {
             font-size: 1.5rem;
             margin: calc(1rem - 4px) 0 1rem 0;
@@ -137,6 +145,7 @@ export class App extends LitElement {
             this._socket.send(JSON.stringify({ "RemovePlayer": id }));
         }
         window.rename_player = (id, name) => {
+            // logic duplicated in _rename_alert() below
             name = name.toString().trim();
             if (name.toLowerCase() == "world" &&
                 Object.entries(this._players).filter((p) => {return p[1].name == "world"}).length > 0) {
@@ -192,14 +201,31 @@ export class App extends LitElement {
         this._socket.send(JSON.stringify("FullSync"));
     }
 
-    _render_clocks_of(player_tuple) { // why can we not use lit @events or other ${this._functions()} inside here???
+    _rename_alert(id, oldname) {
+        var name = prompt("Enter a new name for " + oldname + ".");
+        if (name == null) return;
+        // same checks as in rename_player() above, but with alert (not console.log) feedback
+        name = name.toString().trim();
+        if (name.toLowerCase() == "world" &&
+            Object.entries(this._players).filter((p) => {return p[1].name == "world"}).length > 0) {
+                alert("Look at me I'm so cool I'm gonna break the website LOL ok dude");
+                return;
+        } else if (name == "") {
+            alert("Cannot use a blank name for a player.")
+            return;
+        }
+        this._socket.send(JSON.stringify({ "RenamePlayer": [id, name] }));
+    }
+
+    _render_clocks_of(player_tuple) {
         const id = player_tuple[0]
         const player = player_tuple[1]
-        if (player.name == "world") {
+        if (player.name == "world") { // don't allow renaming world clock
             return html`
                 <div
                     data-clocktype="world"
                     class="playername"
+                    @dblclick="${{handleEvent: () => alert("World clocks cannot be renamed.")}}"
                     oncontextmenu="navigator.clipboard.writeText('${id}'); return false;">
                     ${player.name}
                 </div>
@@ -210,6 +236,7 @@ export class App extends LitElement {
             return html`
                 <div
                     class="playername"
+                    @dblclick="${{handleEvent: () => this._rename_alert(id, player.name)}}"
                     oncontextmenu="navigator.clipboard.writeText('${id}'); return false;">
                     ${player.name}
                 </div>
@@ -243,7 +270,7 @@ export class App extends LitElement {
 
         let allplayers = Object.entries(players);
         allplayers.sort(this._player_sort.bind(this));
-        return map(allplayers, this._render_clocks_of);
+        return map(allplayers, this._render_clocks_of.bind(this));
     }
 
     _show_tab(num) {

@@ -29,6 +29,10 @@ export class Clock extends LitElement {
             background-color: var(--gray-button-color);
             font-size: 0.875rem;
             border: 1px solid var(--text-color);
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
         }
     `;
 

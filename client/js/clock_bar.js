@@ -19,6 +19,10 @@ export class ClockBar extends LitElement {
             cursor: pointer;
             z-index: 99;
             margin-right: 0.5rem;
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
         }
         .clockholder {
             display: flex;
