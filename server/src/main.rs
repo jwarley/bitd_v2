@@ -389,7 +389,7 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                     if sender
                         .send(Message::Text(
                             serde_json::to_string(&UpdatePacket::Error {
-                                text: format!("{e}"),
+                                text: e.to_string(),
                             })
                             .unwrap(),
                         ))
