@@ -1,3 +1,4 @@
+use anyhow::Result;
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
@@ -9,6 +10,7 @@ use axum::{
 };
 use axum_extra::routing::SpaRouter;
 use glob::glob;
+use thiserror::Error;
 // use axum_typed_websockets::{Message, WebSocket, WebSocketUpgrade}
 use dashmap::DashMap;
 use futures::{sink::SinkExt, stream::StreamExt};
@@ -20,6 +22,14 @@ use uuid::Uuid;
 
 type ClockId = Uuid;
 type PlayerId = Uuid;
+
+#[derive(Clone, Debug, Error, Serialize)]
+pub enum BitdError {
+    #[error("Player lookup failed.\nPlayer: {0}")]
+    PlayerLookup(PlayerId),
+    #[error("Clock lookup failed.\nPlayer: {0}\nClock: {1}")]
+    ClockLookup(PlayerId, ClockId),
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Clock {
@@ -93,45 +103,65 @@ impl Bitd {
     }
 
     fn remove_player(&mut self, player_id: PlayerId) {
+        // TODO: error handling
         self.players.remove(&player_id);
         if fs::remove_file(format!("./players/{}.toml", player_id)).is_err() {
             println!("Failed to remove user file: {}", player_id)
         };
     }
 
-    fn add_clock(&self, player_id: PlayerId, task: String, slices: u8) -> ClockId {
-        self.players
+    fn add_clock(&self, player_id: PlayerId, task: String, slices: u8) -> Result<ClockId> {
+        Ok(self
+            .players
             .get_mut(&player_id)
-            .unwrap()
-            .add_clock(task, slices)
+            .ok_or(BitdError::PlayerLookup(player_id))?
+            .add_clock(task, slices))
     }
 
-    fn delete_clock(&self, player_id: PlayerId, clock_id: ClockId) {
+    fn delete_clock(&self, player_id: PlayerId, clock_id: ClockId) -> Result<()> {
         self.players
             .get_mut(&player_id)
-            .unwrap()
+            .ok_or(BitdError::PlayerLookup(player_id))?
             .delete_clock(clock_id);
+        Ok(())
     }
 
-    fn increment_clock(&self, player_id: PlayerId, clock_id: ClockId) {
-        let player = self.players.get_mut(&player_id).unwrap();
-        player.clocks.get_mut(&clock_id).unwrap().increment();
+    fn increment_clock(&self, player_id: PlayerId, clock_id: ClockId) -> Result<()> {
+        let player = self
+            .players
+            .get_mut(&player_id)
+            .ok_or(BitdError::PlayerLookup(player_id))?;
+        player
+            .clocks
+            .get_mut(&clock_id)
+            .ok_or(BitdError::ClockLookup(player_id, clock_id))?
+            .increment();
+        Ok(())
     }
 
-    fn decrement_clock(&self, player_id: PlayerId, clock_id: ClockId) {
-        let player = self.players.get_mut(&player_id).unwrap();
-        player.clocks.get_mut(&clock_id).unwrap().decrement();
+    fn decrement_clock(&self, player_id: PlayerId, clock_id: ClockId) -> Result<()> {
+        let player = self
+            .players
+            .get_mut(&player_id)
+            .ok_or(BitdError::PlayerLookup(player_id))?;
+        player
+            .clocks
+            .get_mut(&clock_id)
+            .ok_or(BitdError::ClockLookup(player_id, clock_id))?
+            .decrement();
+        Ok(())
     }
 
-    fn backup_player(&self, player_id: PlayerId) {
-        if fs::write(
+    fn backup_player(&self, player_id: PlayerId) -> Result<()> {
+        let player = self
+            .players
+            .get(&player_id)
+            .ok_or(BitdError::PlayerLookup(player_id))?;
+        fs::write(
             format!("./players/{}.toml", player_id),
-            toml::to_string_pretty(&*self.players.get(&player_id).unwrap()).unwrap(),
-        )
-        .is_err()
-        {
-            println!("Failed to backup player {}", player_id);
-        };
+            toml::to_string_pretty(&*player)?,
+        )?;
+        Ok(())
     }
 }
 
@@ -159,6 +189,7 @@ enum Instruction {
 enum SyncRequest {
     /// Messages broadcast to the send task to trigger a state update to any websocket clients
     Full,
+    Error(String),
     Clock(PlayerId, ClockId),
     DeleteClock(PlayerId, ClockId),
     AddPlayer(PlayerId),
@@ -171,6 +202,9 @@ enum SyncRequest {
 enum UpdatePacket<'a> {
     /// Pieces of state sent from the server to the client after a change.
     Full(&'a DashMap<PlayerId, PlayerData>),
+    Error {
+        text: String,
+    },
     Clock {
         player_id: PlayerId,
         clock_id: ClockId,
@@ -351,6 +385,20 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                         break;
                     };
                 }
+                SyncRequest::Error(e) => {
+                    if sender
+                        .send(Message::Text(
+                            serde_json::to_string(&UpdatePacket::Error {
+                                text: format!("{e}"),
+                            })
+                            .unwrap(),
+                        ))
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    };
+                }
             }
         }
     });
@@ -372,47 +420,70 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                         };
                     }
                     Instruction::AddClock(player_id, task, slices) => {
-                        let clock_id = bitd.add_clock(player_id, task, slices);
-                        bitd.backup_player(player_id);
-                        if tx.send(SyncRequest::Clock(player_id, clock_id)).is_err() {
+                        let sync_req = match bitd.add_clock(player_id, task, slices) {
+                            Ok(clock_id) => bitd.backup_player(player_id).map_or_else(
+                                |e| SyncRequest::Error(format!("{e}")),
+                                |_| SyncRequest::Clock(player_id, clock_id),
+                            ),
+                            Err(e) => SyncRequest::Error(format!("{e}")),
+                        };
+                        if tx.send(sync_req).is_err() {
                             break;
                         };
                     }
                     Instruction::DeleteClock(player_id, clock_id) => {
-                        bitd.delete_clock(player_id, clock_id);
-                        bitd.backup_player(player_id);
-                        if tx
-                            .send(SyncRequest::DeleteClock(player_id, clock_id))
-                            .is_err()
-                        {
+                        let sync_req = match bitd.delete_clock(player_id, clock_id) {
+                            Ok(_) => bitd.backup_player(player_id).map_or_else(
+                                |e| SyncRequest::Error(format!("{e}")),
+                                |_| SyncRequest::DeleteClock(player_id, clock_id),
+                            ),
+                            Err(e) => SyncRequest::Error(format!("{e}")),
+                        };
+                        if tx.send(sync_req).is_err() {
                             break;
                         };
                     }
                     Instruction::IncrementClock(player_id, clock_id) => {
-                        bitd.increment_clock(player_id, clock_id);
-                        bitd.backup_player(player_id);
-                        if tx.send(SyncRequest::Clock(player_id, clock_id)).is_err() {
+                        let sync_req = match bitd.increment_clock(player_id, clock_id) {
+                            Ok(_) => bitd.backup_player(player_id).map_or_else(
+                                |e| SyncRequest::Error(format!("{e}")),
+                                |_| SyncRequest::Clock(player_id, clock_id),
+                            ),
+                            Err(e) => SyncRequest::Error(format!("{e}")),
+                        };
+                        if tx.send(sync_req).is_err() {
                             break;
                         };
                     }
                     Instruction::DecrementClock(player_id, clock_id) => {
-                        bitd.decrement_clock(player_id, clock_id);
-                        bitd.backup_player(player_id);
-                        if tx.send(SyncRequest::Clock(player_id, clock_id)).is_err() {
+                        let sync_req = match bitd.decrement_clock(player_id, clock_id) {
+                            Ok(_) => bitd.backup_player(player_id).map_or_else(
+                                |e| SyncRequest::Error(format!("{e}")),
+                                |_| SyncRequest::Clock(player_id, clock_id),
+                            ),
+                            Err(e) => SyncRequest::Error(format!("{e}")),
+                        };
+                        if tx.send(sync_req).is_err() {
                             break;
                         };
                     }
                     Instruction::AddPlayer(name) => {
                         let player_id = bitd.add_player(name);
-                        bitd.backup_player(player_id);
-                        if tx.send(SyncRequest::AddPlayer(player_id)).is_err() {
+                        let sync_req = bitd.backup_player(player_id).map_or_else(
+                            |e| SyncRequest::Error(format!("{e}")),
+                            |_| SyncRequest::AddPlayer(player_id),
+                        );
+                        if tx.send(sync_req).is_err() {
                             break;
                         };
                     }
                     Instruction::RenamePlayer(player_id, name) => {
                         bitd.rename_player(player_id, name);
-                        bitd.backup_player(player_id);
-                        if tx.send(SyncRequest::RenamePlayer(player_id)).is_err() {
+                        let sync_req = bitd.backup_player(player_id).map_or_else(
+                            |e| SyncRequest::Error(format!("{e}")),
+                            |_| SyncRequest::RenamePlayer(player_id),
+                        );
+                        if tx.send(sync_req).is_err() {
                             break;
                         };
                     }

@@ -141,9 +141,11 @@ export class App extends LitElement {
             }
             this._socket.send(JSON.stringify({ "AddPlayer": name }));
         }
+
         window.remove_player = (id) => {
             this._socket.send(JSON.stringify({ "RemovePlayer": id }));
         }
+
         window.rename_player = (id, name) => {
             // logic duplicated in _rename_alert() below
             name = name.toString().trim();
@@ -169,6 +171,9 @@ export class App extends LitElement {
             let {type: _, ...players} = update
             this._players = players
         }
+        else if (update.type == "Error") {
+            console.error(update.text);
+        }
         else if (update.type == "Clock") {
             this._players[update.player_id].clocks[update.clock_id] = update.clock;
             this.requestUpdate();
@@ -178,12 +183,10 @@ export class App extends LitElement {
             this.requestUpdate();
         }
         else if (update.type == "Player") {
-            console.log("Added new player", update);
             this._players[update.player_id] = update.player_data;
             this.requestUpdate();
         }
         else if (update.type == "PlayerName") {
-            console.log("Renaming player", update);
             this._players[update.player_id]["name"] = update.player_name;
             this.requestUpdate();
         }
@@ -217,6 +220,24 @@ export class App extends LitElement {
         this._socket.send(JSON.stringify({ "RenamePlayer": [id, name] }));
     }
 
+    _player_sort(a, b) { // sort based on who has the most clocks
+        let sort_value = 0;
+        if (a[1].name == "world") { // world clock always first
+            sort_value = Number.NEGATIVE_INFINITY;
+        } else if (b[1].name == "world") {
+            sort_value = Number.POSITIVE_INFINITY;
+        } else if (a[0] == this._current_player_uuid) { // current player always second
+            sort_value = Number.NEGATIVE_INFINITY;
+        } else if (b[0] == this._current_player_uuid) {
+            sort_value = Number.POSITIVE_INFINITY;
+        } else {
+            const a_length = Object.keys(a[1].clocks).length;
+            const b_length = Object.keys(b[1].clocks).length;
+            sort_value = b_length - a_length; // negative: a before b; positive: b before a
+        }
+        return sort_value;
+    }
+
     _render_clocks_of(player_tuple) {
         const id = player_tuple[0]
         const player = player_tuple[1]
@@ -243,24 +264,6 @@ export class App extends LitElement {
                 <bitd-clock-bar player_id="${id}" clocks="${JSON.stringify(player.clocks)}"></bitd-clock-bar>
             `;
         }
-    }
-
-    _player_sort(a, b) { // sort based on who has the most clocks
-        let sort_value = 0;
-        if (a[1].name == "world") { // world clock always first
-            sort_value = Number.NEGATIVE_INFINITY;
-        } else if (b[1].name == "world") {
-            sort_value = Number.POSITIVE_INFINITY;
-        } else if (a[0] == this._current_player_uuid) { // current player always second
-            sort_value = Number.NEGATIVE_INFINITY;
-        } else if (b[0] == this._current_player_uuid) {
-            sort_value = Number.POSITIVE_INFINITY;
-        } else {
-            const a_length = Object.keys(a[1].clocks).length;
-            const b_length = Object.keys(b[1].clocks).length;
-            sort_value = b_length - a_length; // negative: a before b; positive: b before a
-        }
-        return sort_value;
     }
 
     _render_players(players) {
