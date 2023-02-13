@@ -145,20 +145,6 @@ export class App extends LitElement {
         window.remove_player = (id) => {
             this._socket.send(JSON.stringify({ "RemovePlayer": id }));
         }
-
-        window.rename_player = (id, name) => {
-            // logic duplicated in _rename_alert() below
-            name = name.toString().trim();
-            if (name.toLowerCase() == "world" &&
-                Object.entries(this._players).filter((p) => {return p[1].name == "world"}).length > 0) {
-                    console.log("Look at me I'm so cool I'm gonna break the website LOL ok dude");
-                    return;
-            } else if (name == "") {
-                console.log("Cannot use a blank name for a player.")
-                return;
-            }
-            this._socket.send(JSON.stringify({ "RenamePlayer": [id, name] }));
-        }
     }
 
     handle_server_message(event) {
@@ -207,7 +193,6 @@ export class App extends LitElement {
     _rename_alert(id, oldname) {
         var name = prompt("Enter a new name for " + oldname + ".");
         if (name == null) return;
-        // same checks as in rename_player() above, but with alert (not console.log) feedback
         name = name.toString().trim();
         if (name.toLowerCase() == "world" &&
             Object.entries(this._players).filter((p) => {return p[1].name == "world"}).length > 0) {
@@ -246,7 +231,6 @@ export class App extends LitElement {
                 <div
                     data-clocktype="world"
                     class="playername"
-                    @dblclick="${{handleEvent: () => alert("World clocks cannot be renamed.")}}"
                     oncontextmenu="navigator.clipboard.writeText('${id}'); return false;">
                     ${player.name}
                 </div>
