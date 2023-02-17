@@ -1,5 +1,4 @@
 import {LitElement, html, map, css} from './lit-all.min.js';
-import * as map_tab from "./map.js";
 
 export class App extends LitElement {
     static styles = css`
@@ -83,6 +82,7 @@ export class App extends LitElement {
     static properties = {
         _players: { type: Object, state: true },
         _current_player_uuid: { type: String, state: true },
+        _landmarks: { type: Object, state: true },
         _socket: {},
     }
 
@@ -113,6 +113,11 @@ export class App extends LitElement {
         });
 
         this.addEventListener('decrement_clock', (event) => {
+            this._socket.send(event.detail);
+        });
+
+        this.addEventListener('add_landmark', (event) => {
+            console.log(event);
             this._socket.send(event.detail);
         });
 
@@ -154,8 +159,8 @@ export class App extends LitElement {
             console.log("INFO:", update);
         }
         else if (update.type == "Full") {
-            let {type: _, ...players} = update
-            this._players = players
+            this._players = update.players
+            this._landmarks = update.landmarks
         }
         else if (update.type == "Error") {
             console.error(update.text);
@@ -178,6 +183,10 @@ export class App extends LitElement {
         }
         else if (update.type == "RemovePlayer") {
             delete this._players[update.player_id];
+            this.requestUpdate();
+        }
+        else if (update.type == "Landmark") {
+            this._landmarks[update.id] = update.data
             this.requestUpdate();
         }
         else {
@@ -266,8 +275,8 @@ export class App extends LitElement {
         const clocks = root.getElementById("clocks");
         clocks.style.display = num == 1 ? "block" : "none";
 
-        const map = root.getElementById("map");
-        map.style.display = num == 2 ? "block" : "none";
+        const bitd_map = root.getElementById("map");
+        bitd_map.style.display = num == 2 ? "block" : "none";
 
         const notes = root.getElementById("notes");
         notes.style.display = num == 3 ? "block" : "none";
@@ -276,6 +285,9 @@ export class App extends LitElement {
     }
 
     render() {
+                // <div id="map">
+                //     ${map_tab._render_map()}
+                // </div>
         return html`
             <div id="main">
                 <div id="topbar">
@@ -287,7 +299,7 @@ export class App extends LitElement {
                     ${this._render_players(this._players)}
                 </div>
                 <div id="map">
-                    ${map_tab._render_map()}
+                    <bitd-map landmarks=${JSON.stringify(this._landmarks)}></bitd-map>
                 </div>
                 <div id="notes">
                     <bitd-notes-list></bitd-notes-list>

@@ -1,5 +1,6 @@
 /server/Cargo.lock
 /server/target/
 /server/players/
+/server/data/
 *.sh
 .DS_Store

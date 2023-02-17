@@ -22,6 +22,7 @@ use uuid::Uuid;
 
 type ClockId = Uuid;
 type PlayerId = Uuid;
+type LandmarkId = Uuid;
 
 #[derive(Clone, Debug, Error, Serialize)]
 pub enum BitdError {
@@ -85,13 +86,21 @@ impl PlayerData {
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct Landmark {
+    name: String,
+    x: f64,
+    y: f64,
+}
+
 #[derive(Clone, Debug)]
 struct Bitd {
     players: Arc<DashMap<PlayerId, PlayerData>>,
+    landmarks: Arc<DashMap<LandmarkId, Landmark>>,
 }
 
 impl Bitd {
-    fn add_player(&mut self, name: String) -> Uuid {
+    fn add_player(&mut self, name: String) -> PlayerId {
         let player_id = Uuid::now_v7();
         self.players.insert(player_id, PlayerData::new(name));
         player_id
@@ -163,6 +172,27 @@ impl Bitd {
         )?;
         Ok(())
     }
+
+    fn add_landmark(&mut self, name: String, x: f64, y: f64) -> LandmarkId {
+        let id = Uuid::now_v7();
+        self.landmarks.insert(id, Landmark { name, x, y });
+        id
+    }
+
+    fn backup_landmarks(&self) -> Result<()> {
+        fs::write(
+            "./data/landmarks.toml",
+            toml::to_string_pretty(&*self.landmarks)?,
+        )?;
+        Ok(())
+    }
+
+    fn load_landmarks_backup(&mut self) -> Result<()> {
+        self.landmarks = Arc::new(toml::from_str(&fs::read_to_string(
+            "./data/landmarks.toml",
+        )?)?);
+        Ok(())
+    }
 }
 
 // Our shared state
@@ -183,6 +213,7 @@ enum Instruction {
     AddPlayer(String),
     RenamePlayer(PlayerId, String),
     RemovePlayer(PlayerId),
+    AddLandmark(String, f64, f64),
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -195,13 +226,17 @@ enum SyncRequest {
     AddPlayer(PlayerId),
     RenamePlayer(PlayerId),
     RemovePlayer(PlayerId),
+    AddLandmark(LandmarkId),
 }
 
 #[derive(Serialize, Debug, Clone)]
 #[serde(tag = "type")]
 enum UpdatePacket<'a> {
     /// Pieces of state sent from the server to the client after a change.
-    Full(&'a DashMap<PlayerId, PlayerData>),
+    Full {
+        players: &'a DashMap<PlayerId, PlayerData>,
+        landmarks: &'a DashMap<LandmarkId, Landmark>,
+    },
     Error {
         text: String,
     },
@@ -225,12 +260,16 @@ enum UpdatePacket<'a> {
     RemovePlayer {
         player_id: PlayerId,
     },
+    Landmark {
+        id: LandmarkId,
+        data: &'a Landmark,
+    },
 }
 
 #[tokio::main]
 async fn main() {
     // use this to preview json reprs of newly defined types
-    // dbg!(serde_json::to_string(&Instruction::RemovePlayer(Uuid::now_v7())).unwrap());
+    // dbg!(toml::to_string(&bup));
 
     // Load players from backup
     let players = DashMap::new();
@@ -252,9 +291,14 @@ async fn main() {
         }
     }
 
-    let bitd = Bitd {
+    let mut bitd = Bitd {
         players: Arc::new(players),
+        landmarks: Arc::new(DashMap::new()),
     };
+
+    if let Err(e) = bitd.load_landmarks_backup() {
+        println!("Warning: Failed to load landmarks from backup. Cause:\n {e}");
+    }
 
     // Set up application state for use with with_state().
     let (tx, _rx) = broadcast::channel(100);
@@ -298,7 +342,11 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                 SyncRequest::Full => {
                     if sender
                         .send(Message::Text(
-                            serde_json::to_string(&UpdatePacket::Full(&bitd.players)).unwrap(),
+                            serde_json::to_string(&UpdatePacket::Full {
+                                players: &bitd.players,
+                                landmarks: &bitd.landmarks,
+                            })
+                            .unwrap(),
                         ))
                         .await
                         .is_err()
@@ -399,6 +447,21 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                         break;
                     };
                 }
+                SyncRequest::AddLandmark(id) => {
+                    if sender
+                        .send(Message::Text(
+                            serde_json::to_string(&UpdatePacket::Landmark {
+                                id,
+                                data: &bitd.landmarks.get(&id).unwrap(),
+                            })
+                            .unwrap(),
+                        ))
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    };
+                }
             }
         }
     });
@@ -490,6 +553,16 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                     Instruction::RemovePlayer(player_id) => {
                         bitd.remove_player(player_id);
                         if tx.send(SyncRequest::RemovePlayer(player_id)).is_err() {
+                            break;
+                        };
+                    }
+                    Instruction::AddLandmark(name, x, y) => {
+                        let landmark_id = bitd.add_landmark(name, x, y);
+                        let sync_req = bitd.backup_landmarks().map_or_else(
+                            |e| SyncRequest::Error(format!("{e}")),
+                            |_| SyncRequest::AddLandmark(landmark_id),
+                        );
+                        if tx.send(sync_req).is_err() {
                             break;
                         };
                     }
