@@ -129,20 +129,18 @@ impl Bitd {
             save_dir,
         };
 
-        if let Err(e) = fs::create_dir_all(&bitd.save_dir) {
-            println!(
-                "Could not create save directory at {}. Cause:\n {}",
-                &bitd.save_dir.display(),
-                e
-            )
-        }
-
-        if let Err(e) = fs::create_dir_all(bitd.players_dir()) {
-            println!(
-                "Could not create players directory at {}. Cause:\n {}",
-                &bitd.players_dir(),
-                e
-            )
+        match fs::create_dir_all(&bitd.save_dir) {
+            Err(e) => {
+                println!(
+                    "Could not create save directory at {}. Cause:\n {}",
+                    &bitd.save_dir.display(),
+                    e
+                )
+            }
+            Ok(_) => {
+                // if the previous create_dir succeeded, should be fine to unwrap
+                fs::create_dir_all(bitd.players_dir()).unwrap();
+            }
         }
 
         if let Err(e) = bitd.load_players_backup() {
