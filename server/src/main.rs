@@ -10,6 +10,7 @@ use axum::{
 };
 use axum_extra::routing::SpaRouter;
 use glob::glob;
+use std::path::PathBuf;
 use thiserror::Error;
 // use axum_typed_websockets::{Message, WebSocket, WebSocketUpgrade}
 use dashmap::DashMap;
@@ -23,6 +24,7 @@ use uuid::Uuid;
 type ClockId = Uuid;
 type PlayerId = Uuid;
 type LandmarkId = Uuid;
+type NoteId = Uuid;
 
 #[derive(Clone, Debug, Error, Serialize)]
 pub enum BitdError {
@@ -93,20 +95,77 @@ struct Landmark {
     y: f64,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+enum NoteKind {
+    Concept,
+    Boogins,
+    Event,
+    Item,
+    Misc,
+    Person,
+    Place,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct Note {
+    name: String,
+    content: f64,
+    kind: NoteKind,
+}
+
 #[derive(Clone, Debug)]
 struct Bitd {
     players: Arc<DashMap<PlayerId, PlayerData>>,
     landmarks: Arc<DashMap<LandmarkId, Landmark>>,
+    notes: Arc<DashMap<NoteId, Note>>,
+    save_dir: PathBuf,
 }
 
 impl Bitd {
+    fn new(save_dir: PathBuf) -> Self {
+        let mut bitd = Bitd {
+            players: Arc::new(DashMap::new()),
+            landmarks: Arc::new(DashMap::new()),
+            notes: Arc::new(DashMap::new()),
+            save_dir,
+        };
+
+        if let Err(e) = fs::create_dir_all(&bitd.save_dir) {
+            println!(
+                "Could not create save directory at {}. Cause:\n {}",
+                &bitd.save_dir.display(),
+                e
+            )
+        }
+
+        if let Err(e) = fs::create_dir_all(bitd.players_dir()) {
+            println!(
+                "Could not create players directory at {}. Cause:\n {}",
+                &bitd.players_dir(),
+                e
+            )
+        }
+
+        if let Err(e) = bitd.load_players_backup() {
+            println!("Warning: Failed to load players from backup. Cause:\n {e}")
+        }
+
+        if let Err(e) = bitd.load_landmarks_backup() {
+            println!("Warning: Failed to load landmarks from backup. Cause:\n {e}");
+        }
+
+        if let Err(e) = bitd.load_notes_backup() {
+            println!("Warning: Failed to load notes from backup. Cause:\n {e}");
+        }
+
+        bitd
+    }
+
     fn add_player(&mut self, name: String) -> PlayerId {
         let player_id = Uuid::now_v7();
         self.players.insert(player_id, PlayerData::new(name));
         player_id
     }
 
-    /// Rename a player and return the old name if successful
     fn rename_player(&mut self, player_id: PlayerId, name: String) -> Option<String> {
         self.players.get_mut(&player_id).map(|mut p| p.rename(name))
     }
@@ -161,15 +220,46 @@ impl Bitd {
         Ok(())
     }
 
+    fn players_dir(&self) -> String {
+        format!("{}/players", self.save_dir.display())
+    }
+
+    fn notes_dir(&self) -> String {
+        self.save_dir.display().to_string()
+    }
+
+    fn landmarks_dir(&self) -> String {
+        self.save_dir.display().to_string()
+    }
+
     fn backup_player(&self, player_id: PlayerId) -> Result<()> {
         let player = self
             .players
             .get(&player_id)
             .ok_or(BitdError::PlayerLookup(player_id))?;
         fs::write(
-            format!("./players/{}.toml", player_id),
+            format!("{}/{}.toml", self.players_dir(), player_id),
             toml::to_string_pretty(&*player)?,
         )?;
+        Ok(())
+    }
+
+    fn load_players_backup(&mut self) -> Result<()> {
+        for path in glob(&format!("{}/*.toml", self.players_dir()))
+            .expect("Failed to read glob pattern.")
+            .filter_map(Result::ok)
+        {
+            if let (Some(stem), Ok(contents)) = (
+                path.file_stem().unwrap().to_str(), // unwrap is safe bc we know path matches *.toml
+                &fs::read_to_string(&path),
+            ) {
+                if let Ok(uuid) = Uuid::try_parse(stem) {
+                    if let Ok(player) = toml::from_str(contents) {
+                        self.players.insert(uuid, player);
+                    }
+                }
+            }
+        }
         Ok(())
     }
 
@@ -181,16 +271,33 @@ impl Bitd {
 
     fn backup_landmarks(&self) -> Result<()> {
         fs::write(
-            "./data/landmarks.toml",
+            format!("{}/landmarks.toml", self.landmarks_dir()),
             toml::to_string_pretty(&*self.landmarks)?,
         )?;
         Ok(())
     }
 
     fn load_landmarks_backup(&mut self) -> Result<()> {
-        self.landmarks = Arc::new(toml::from_str(&fs::read_to_string(
-            "./data/landmarks.toml",
-        )?)?);
+        self.landmarks = Arc::new(toml::from_str(&fs::read_to_string(format!(
+            "{}/landmarks.toml",
+            self.landmarks_dir()
+        ))?)?);
+        Ok(())
+    }
+
+    fn backup_notes(&self) -> Result<()> {
+        fs::write(
+            format!("{}/notes.toml", self.notes_dir()),
+            toml::to_string_pretty(&*self.notes)?,
+        )?;
+        Ok(())
+    }
+
+    fn load_notes_backup(&mut self) -> Result<()> {
+        self.notes = Arc::new(toml::from_str(&fs::read_to_string(format!(
+            "{}/notes.toml",
+            self.notes_dir()
+        ))?)?);
         Ok(())
     }
 }
@@ -271,34 +378,7 @@ async fn main() {
     // use this to preview json reprs of newly defined types
     // dbg!(toml::to_string(&bup));
 
-    // Load players from backup
-    let players = DashMap::new();
-    fs::create_dir_all("./players").expect("Could not create server/players/ directory.");
-
-    for path in glob("./players/*.toml")
-        .expect("Failed to read glob pattern.")
-        .filter_map(Result::ok)
-    {
-        if let (Some(stem), Ok(contents)) = (
-            path.file_stem().unwrap().to_str(), // unwrap is safe bc we know path matches *.toml
-            &fs::read_to_string(&path),
-        ) {
-            if let Ok(uuid) = Uuid::try_parse(stem) {
-                if let Ok(player) = toml::from_str(contents) {
-                    players.insert(uuid, player);
-                }
-            }
-        }
-    }
-
-    let mut bitd = Bitd {
-        players: Arc::new(players),
-        landmarks: Arc::new(DashMap::new()),
-    };
-
-    if let Err(e) = bitd.load_landmarks_backup() {
-        println!("Warning: Failed to load landmarks from backup. Cause:\n {e}");
-    }
+    let bitd = Bitd::new("./data".into());
 
     // Set up application state for use with with_state().
     let (tx, _rx) = broadcast::channel(100);
