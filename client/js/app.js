@@ -159,8 +159,8 @@ export class App extends LitElement {
             this._socket.send(JSON.stringify({ "AddPlayer": name }));
         }
 
-        window.remove_player = (id) => {
-            this._socket.send(JSON.stringify({ "RemovePlayer": id }));
+        window.delete_player = (id) => {
+            this._socket.send(JSON.stringify({ "DeletePlayer": id }));
         }
     }
 
@@ -194,7 +194,7 @@ export class App extends LitElement {
             this._players[update.player_id]["name"] = update.player_name;
             this.requestUpdate();
         }
-        else if (update.type == "RemovePlayer") {
+        else if (update.type == "DeletePlayer") {
             delete this._players[update.player_id];
             this.requestUpdate();
         }

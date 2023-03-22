@@ -338,7 +338,7 @@ enum Instruction {
     DecrementClock(PlayerId, ClockId),
     AddPlayer(String),
     RenamePlayer(PlayerId, String),
-    RemovePlayer(PlayerId),
+    DeletePlayer(PlayerId),
     AddLandmark(String, f64, f64),
     DeleteLandmark(LandmarkId),
     AddNote(String, String, NoteCategory),
@@ -355,7 +355,7 @@ enum SyncRequest {
     DeleteClock(PlayerId, ClockId),
     AddPlayer(PlayerId),
     RenamePlayer(PlayerId),
-    RemovePlayer(PlayerId),
+    DeletePlayer(PlayerId),
     AddLandmark(LandmarkId),
     DeleteLandmark(LandmarkId),
     AddNote(NoteId),
@@ -392,7 +392,7 @@ enum UpdatePacket<'a> {
         player_id: PlayerId,
         player_name: &'a str,
     },
-    RemovePlayer {
+    DeletePlayer {
         player_id: PlayerId,
     },
     Landmark {
@@ -540,10 +540,10 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                         break;
                     };
                 }
-                SyncRequest::RemovePlayer(player_id) => {
+                SyncRequest::DeletePlayer(player_id) => {
                     if sender
                         .send(Message::Text(
-                            serde_json::to_string(&UpdatePacket::RemovePlayer { player_id })
+                            serde_json::to_string(&UpdatePacket::DeletePlayer { player_id })
                                 .unwrap(),
                         ))
                         .await
@@ -706,9 +706,9 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                             break;
                         };
                     }
-                    Instruction::RemovePlayer(player_id) => {
+                    Instruction::DeletePlayer(player_id) => {
                         bitd.remove_player(player_id);
-                        if tx.send(SyncRequest::RemovePlayer(player_id)).is_err() {
+                        if tx.send(SyncRequest::DeletePlayer(player_id)).is_err() {
                             break;
                         };
                     }
