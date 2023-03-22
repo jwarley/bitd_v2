@@ -147,7 +147,7 @@ export class NotesList extends LitElement {
         content = content.trim();
         if (content === "") return;
 
-        const message = JSON.stringify({ "AddNote": [name, content, "Boogins"] });
+        const message = JSON.stringify({ "AddNote": [name, content, "Misc"] });
         this.dispatchEvent(new CustomEvent("add_note", {detail: message, bubbles: true, composed: true }));
     }
 

@@ -5,6 +5,15 @@ export const MAP_DARK_URL = "./img/doskvol_map_dark.png";
 export const MAP_ALLOW_DETAILED_ZOOM = false; // images in img/maps/ are only light mode versions
 
 export class BitdMap extends LitElement{
+    static styles = css`
+        img {
+            display: block;
+            margin: 0.5rem 0;
+            width: 100%;
+            cursor: crosshair;
+        }
+    `;
+
     static properties = {
         landmarks: { type: Object },
     }

@@ -1,7 +1,7 @@
 import {LitElement, html, css} from './lit-all.min.js';
 import { MAP_URL, MAP_DARK_URL } from './map.js'
 
-export const VERSION = "ver. 2023.02.10";
+export const VERSION = "ver. 2023.03.21";
 
 export class Sidebar extends LitElement {
     // #lastupdate border code: https://stackoverflow.com/a/18064496

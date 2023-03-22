@@ -67,12 +67,6 @@ export class App extends LitElement {
             display: none;
             width: 100%;
         }
-        #map img {
-            display: block;
-            margin: 0.5rem 0;
-            width: 100%;
-            cursor: crosshair;
-        }
         #notes {
             display: block;
             margin-top: 0.5rem;

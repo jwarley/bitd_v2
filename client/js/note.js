@@ -2,13 +2,13 @@ import {LitElement, html, css, map} from './lit-all.min.js';
 
 export class Note extends LitElement {
     CATEGORIES = [
-        "Boogins",
-        "Concept",
-        "Event",
-        "Item",
         "Misc",
         "Person",
         "Place",
+        "Boogins",
+        "Item",
+        "Concept",
+        "Event",
     ];
 
     static styles = css`
@@ -61,7 +61,7 @@ export class Note extends LitElement {
 
     render() {
         return html`
-             <div class="note ${this.cat}" data-id="${this.id}">
+             <div class="note ${this.cat.toLowerCase()}" data-id="${this.id}">
                     <div class="header">
                         <div class="title">${this.title}</div>
                         <div class="edit" @click=${this._spawn_edit_prompt}>edit</div>
@@ -70,7 +70,7 @@ export class Note extends LitElement {
                     <div class="desc">
                         ${this.desc}
                     </div>
-                    <select @change=${(e) => this._edit(this.title, this.desc, e.target.value)} class="cat">
+                    <select style="text-transform: lowercase;" @change=${(e) => this._edit(this.title, this.desc, e.target.value)} class="cat">
                         ${map(this.CATEGORIES, (c) => c == this.cat
                             ? html`<option selected value=${c}>${c}</option>`
                             : html`<option value=${c}>${c}</option>`
