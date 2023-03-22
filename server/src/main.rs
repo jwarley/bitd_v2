@@ -96,7 +96,7 @@ struct Landmark {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-enum NoteKind {
+enum NoteCategory {
     Concept,
     Boogins,
     Event,
@@ -105,11 +105,12 @@ enum NoteKind {
     Person,
     Place,
 }
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Note {
-    name: String,
-    content: f64,
-    kind: NoteKind,
+    title: String,
+    desc: String,
+    cat: NoteCategory,
 }
 
 #[derive(Clone, Debug)]
@@ -144,15 +145,17 @@ impl Bitd {
         }
 
         if let Err(e) = bitd.load_players_backup() {
-            println!("Warning: Failed to load players from backup. Cause:\n {e}")
+            println!("Warning: Failed to load players from backup. Cause:\n {e}");
         }
 
-        if let Err(e) = bitd.load_landmarks_backup() {
-            println!("Warning: Failed to load landmarks from backup. Cause:\n {e}");
+        if let Err(_) = bitd.load_landmarks_backup() {
+            println!(
+                "Did not find a landmarks backup. One will be created at ./data/landmarks.toml"
+            );
         }
 
-        if let Err(e) = bitd.load_notes_backup() {
-            println!("Warning: Failed to load notes from backup. Cause:\n {e}");
+        if let Err(_) = bitd.load_notes_backup() {
+            println!("Did not find a notes backup. One will be created at ./data/notes.toml");
         }
 
         bitd
@@ -267,6 +270,10 @@ impl Bitd {
         id
     }
 
+    fn remove_landmark(&mut self, id: LandmarkId) {
+        self.landmarks.remove(&id);
+    }
+
     fn backup_landmarks(&self) -> Result<()> {
         fs::write(
             format!("{}/landmarks.toml", self.landmarks_dir()),
@@ -281,6 +288,20 @@ impl Bitd {
             self.landmarks_dir()
         ))?)?);
         Ok(())
+    }
+
+    fn add_note(&mut self, title: String, desc: String, cat: NoteCategory) -> NoteId {
+        let id = Uuid::now_v7();
+        self.notes.insert(id, Note { title, desc, cat });
+        id
+    }
+
+    fn edit_note(&mut self, id: NoteId, title: String, desc: String, cat: NoteCategory) {
+        self.notes.insert(id, Note { title, desc, cat });
+    }
+
+    fn remove_note(&mut self, id: NoteId) {
+        self.notes.remove(&id);
     }
 
     fn backup_notes(&self) -> Result<()> {
@@ -319,6 +340,10 @@ enum Instruction {
     RenamePlayer(PlayerId, String),
     RemovePlayer(PlayerId),
     AddLandmark(String, f64, f64),
+    DeleteLandmark(LandmarkId),
+    AddNote(String, String, NoteCategory),
+    EditNote(NoteId, String, String, NoteCategory),
+    DeleteNote(NoteId),
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -332,6 +357,10 @@ enum SyncRequest {
     RenamePlayer(PlayerId),
     RemovePlayer(PlayerId),
     AddLandmark(LandmarkId),
+    DeleteLandmark(LandmarkId),
+    AddNote(NoteId),
+    EditNote(NoteId),
+    DeleteNote(NoteId),
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -341,6 +370,7 @@ enum UpdatePacket<'a> {
     Full {
         players: &'a DashMap<PlayerId, PlayerData>,
         landmarks: &'a DashMap<LandmarkId, Landmark>,
+        notes: &'a DashMap<NoteId, Note>,
     },
     Error {
         text: String,
@@ -369,12 +399,22 @@ enum UpdatePacket<'a> {
         id: LandmarkId,
         data: &'a Landmark,
     },
+    DeleteLandmark {
+        id: LandmarkId,
+    },
+    Note {
+        id: NoteId,
+        data: &'a Note,
+    },
+    DeleteNote {
+        id: NoteId,
+    },
 }
 
 #[tokio::main]
 async fn main() {
     // use this to preview json reprs of newly defined types
-    // dbg!(toml::to_string(&bup));
+    // dbg!(serde_json::to_string(&bup));
 
     let bitd = Bitd::new("./data".into());
 
@@ -423,6 +463,7 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                             serde_json::to_string(&UpdatePacket::Full {
                                 players: &bitd.players,
                                 landmarks: &bitd.landmarks,
+                                notes: &bitd.notes,
                             })
                             .unwrap(),
                         ))
@@ -540,6 +581,43 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                         break;
                     };
                 }
+                SyncRequest::DeleteLandmark(id) => {
+                    if sender
+                        .send(Message::Text(
+                            serde_json::to_string(&UpdatePacket::DeleteLandmark { id }).unwrap(),
+                        ))
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    };
+                }
+                SyncRequest::AddNote(id) | SyncRequest::EditNote(id) => {
+                    if sender
+                        .send(Message::Text(
+                            serde_json::to_string(&UpdatePacket::Note {
+                                id,
+                                data: &bitd.notes.get(&id).unwrap(),
+                            })
+                            .unwrap(),
+                        ))
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    };
+                }
+                SyncRequest::DeleteNote(id) => {
+                    if sender
+                        .send(Message::Text(
+                            serde_json::to_string(&UpdatePacket::DeleteNote { id }).unwrap(),
+                        ))
+                        .await
+                        .is_err()
+                    {
+                        break;
+                    };
+                }
             }
         }
     });
@@ -644,7 +722,50 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
                             break;
                         };
                     }
+                    Instruction::DeleteLandmark(id) => {
+                        bitd.remove_landmark(id);
+                        let sync_req = bitd.backup_landmarks().map_or_else(
+                            |e| SyncRequest::Error(format!("{e}")),
+                            |_| SyncRequest::DeleteLandmark(id),
+                        );
+                        if tx.send(sync_req).is_err() {
+                            break;
+                        };
+                    }
+                    Instruction::AddNote(title, desc, cat) => {
+                        let note_id = bitd.add_note(title, desc, cat);
+                        let sync_req = bitd.backup_notes().map_or_else(
+                            |e| SyncRequest::Error(format!("{e}")),
+                            |_| SyncRequest::AddNote(note_id),
+                        );
+                        if tx.send(sync_req).is_err() {
+                            break;
+                        };
+                    }
+                    Instruction::EditNote(id, title, desc, cat) => {
+                        bitd.edit_note(id, title, desc, cat);
+                        let sync_req = bitd.backup_notes().map_or_else(
+                            |e| SyncRequest::Error(format!("{e}")),
+                            |_| SyncRequest::EditNote(id),
+                        );
+                        if tx.send(sync_req).is_err() {
+                            break;
+                        };
+                    }
+                    Instruction::DeleteNote(id) => {
+                        bitd.remove_note(id);
+                        let sync_req = bitd.backup_notes().map_or_else(
+                            |e| SyncRequest::Error(format!("{e}")),
+                            |_| SyncRequest::DeleteNote(id),
+                        );
+                        if tx.send(sync_req).is_err() {
+                            break;
+                        };
+                    }
                 }
+            } else {
+                println!("Received a message from a client but could not parse an instruction:");
+                println!("{}", text);
             }
         }
     });

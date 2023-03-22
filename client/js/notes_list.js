@@ -136,71 +136,47 @@ export class NotesList extends LitElement {
         super();
     }
 
-    _create_note() {
-        // ...
-    }
+    _add_note() {
+        let name = window.prompt("What's it called?");
+        if (name == null) return;
+        name = name.trim();
+        if (name === "") return;
 
-    _render_notes() {
-        // const notes_ordered = Object.keys(this.notes).sort();
-        return html `
-            <div id="control_panel">
-                <a @click=${this._create_note}>new note</a>
+        let content = window.prompt("What's the deal with " + name + "?");
+        if (content == null) return;
+        content = content.trim();
+        if (content === "") return;
 
-                <b>filter:</b>
-                <select id="note_filter">
-                </select>
-
-                <b>sort:</b>
-                <select id="note_sort">
-                    <option value="date">date</option>
-                    <option value="name">name</option>
-                    <option value="type">type</option>
-                </select>
-            </div>
-
-            <bitd-note
-                title="idk"
-                desc="something else"
-                cat="misc">
-            </bitd-note>
-            <bitd-note
-                title="tip from remy"
-                desc="eliza's a killer"
-                cat="person">
-            </bitd-note>
-            <bitd-note
-                title="hroses"
-                desc="the barn smells funky?!"
-                cat="place">
-            </bitd-note>
-            <bitd-note
-                title="a ghost"
-                desc="spooky monters"
-                cat="boogins">
-            </bitd-note>
-            <bitd-note
-                title="swiss army man"
-                desc="viktor's knife needs sharpening asap"
-                cat="item">
-            </bitd-note>
-            <bitd-note
-                title="nyoo hoo hoo math"
-                desc="1 + 1 = 2"
-                cat="concept">
-            </bitd-note>
-            <bitd-note
-                title="brawl"
-                desc="street fight sundown tomorrow at the riverbank but if you don't show up there's gon' be a reckoning"
-                cat="event">
-            </bitd-note>
-
-        `;
+        const message = JSON.stringify({ "AddNote": [name, content, "Boogins"] });
+        this.dispatchEvent(new CustomEvent("add_note", {detail: message, bubbles: true, composed: true }));
     }
 
     render() {
+        // const notes_ordered = Object.keys(this.notes).sort();
+        const notes_html = this.notes === null ? html`` : html`${map(Object.entries(this.notes), (c) => {
+            const id = c[0];
+            const note = c[1];
+            return html`
+                <bitd-note id="${id}" title="${note.title}" desc="${note.desc}" cat="${note.cat}"></bitd-note>
+            `
+        })}` ;
         return html`
             <div id="noteswrapper">
-                ${this._render_notes()}
+                <div id="control_panel">
+                    <a @click=${this._add_note}>new note</a>
+
+                    <b>filter:</b>
+                    <select id="note_filter">
+                    </select>
+
+                    <b>sort:</b>
+                    <select id="note_sort">
+                        <option value="date">date</option>
+                        <option value="name">name</option>
+                        <option value="type">type</option>
+                    </select>
+                </div>
+                <div>${notes_html}</div>
             </div>
         `;
     }

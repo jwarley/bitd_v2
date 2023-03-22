@@ -83,6 +83,7 @@ export class App extends LitElement {
         _players: { type: Object, state: true },
         _current_player_uuid: { type: String, state: true },
         _landmarks: { type: Object, state: true },
+        _notes: { type: Object, state: true },
         _socket: {},
     }
 
@@ -117,7 +118,18 @@ export class App extends LitElement {
         });
 
         this.addEventListener('add_landmark', (event) => {
-            console.log(event);
+            this._socket.send(event.detail);
+        });
+
+        this.addEventListener('add_note', (event) => {
+            this._socket.send(event.detail);
+        });
+
+        this.addEventListener('edit_note', (event) => {
+            this._socket.send(event.detail);
+        });
+
+        this.addEventListener('delete_note', (event) => {
             this._socket.send(event.detail);
         });
 
@@ -161,6 +173,7 @@ export class App extends LitElement {
         else if (update.type == "Full") {
             this._players = update.players
             this._landmarks = update.landmarks
+            this._notes = update.notes
         }
         else if (update.type == "Error") {
             console.error(update.text);
@@ -187,6 +200,18 @@ export class App extends LitElement {
         }
         else if (update.type == "Landmark") {
             this._landmarks[update.id] = update.data
+            this.requestUpdate();
+        }
+        else if (update.type == "DeleteLandmark") {
+            delete this._landmarks[update.id];
+            this.requestUpdate();
+        }
+        else if (update.type == "Note") {
+            this._notes[update.id] = update.data
+            this.requestUpdate();
+        }
+        else if (update.type == "DeleteNote") {
+            delete this._notes[update.id];
             this.requestUpdate();
         }
         else {
@@ -302,7 +327,7 @@ export class App extends LitElement {
                     <bitd-map landmarks=${JSON.stringify(this._landmarks)}></bitd-map>
                 </div>
                 <div id="notes">
-                    <bitd-notes-list></bitd-notes-list>
+                    <bitd-notes-list notes=${JSON.stringify(this._notes)}></bitd-notes-list>
                 </div>
             </div>
             <bitd-sidebar players="${JSON.stringify(this._players)}"></bitd-sidebar>
