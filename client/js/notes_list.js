@@ -1,4 +1,4 @@
-import {LitElement, html, map, css} from './lit-all.min.js';
+import {LitElement, html, map, css, repeat} from './lit-all.min.js';
 
 export class NotesList extends LitElement {
     static styles = css`
@@ -65,27 +65,44 @@ export class NotesList extends LitElement {
             width: 100%;
             justify-content: space-between;
         }
-        .note .header .title {
+        .note .header input.title {
             color: var(--text-color);
+            background: transparent;
+            border: 0;
+            font-weight: bold;
+            font-size: 1.5rem;
             font-weight: bold;
             font-size: 1.5rem;
             padding: 0.25rem 0.5rem;
-            width: max-content;
+            width: 150px;
+            min-width: 150px;
         }
-        .note .header .edit {
+        input:focus {
+            outline: 0;
+        }
+        .note .header .del {
             background: var(--gray-text-color);
             color: var(--page-color);
             font-weight: bold;
             font-size: 1rem;
             padding: 0.5rem;
-            margin-left: 0.5rem;
-            width: max-content;
+            width: 11px;
+            text-align: center;
             cursor: pointer;
         }
-        .note .desc {
+        .note textarea.desc {
             margin-top: 0.25rem;
             padding: 0.45rem;
             margin-bottom: 1.75rem;
+            background: transparent;
+            color: var(--text-color);
+            border: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
+            font-size: 12pt;
+            resize: none;
+        }
+        textarea:focus {
+            outline: 0;
         }
         .note .cat {
             color: var(--text-color);
@@ -130,36 +147,48 @@ export class NotesList extends LitElement {
 
     static properties = {
         notes: { type: Object },
+        _sort_type: { type: String },
     }
 
     constructor() {
         super();
+        this._sort_type = "date";
     }
 
     _add_note() {
-        let name = window.prompt("What's it called?");
-        if (name == null) return;
-        name = name.trim();
-        if (name === "") return;
-
-        let content = window.prompt("What's the deal with " + name + "?");
-        if (content == null) return;
-        content = content.trim();
-        if (content === "") return;
+        const name = "note"
+        let content = "..."
 
         const message = JSON.stringify({ "AddNote": [name, content, "Misc"] });
         this.dispatchEvent(new CustomEvent("add_note", {detail: message, bubbles: true, composed: true }));
     }
 
+    _return_sorted_notes() {
+        const notes_ordered = Object.entries(this.notes).sort((a, b) => {
+            switch (this._sort_type) {
+                case "date":
+                    return a[0].localeCompare(b[0]); // uuids in sortable order
+                case "name":
+                    return a[1].title.localeCompare(b[1].title);
+                case "type":
+                    return a[1].cat.localeCompare(b[1].cat);
+            }
+        });
+
+        return notes_ordered;
+    }
+
     render() {
-        // const notes_ordered = Object.keys(this.notes).sort();
-        const notes_html = this.notes === null ? html`` : html`${map(Object.entries(this.notes), (c) => {
+        const notes_html = this.notes === null ? html`` : html`${repeat(this._return_sorted_notes(),
+            (c) => c[0], // unique identifier for the item
+            (c) => {
             const id = c[0];
             const note = c[1];
             return html`
                 <bitd-note id="${id}" title="${note.title}" desc="${note.desc}" cat="${note.cat}"></bitd-note>
             `
         })}` ;
+
         return html`
             <div id="noteswrapper">
                 <div id="control_panel">
@@ -170,13 +199,14 @@ export class NotesList extends LitElement {
                     </select>
 
                     <b>sort:</b>
-                    <select id="note_sort">
+                    <select @change="${e => this._sort_type = e.target.value}" id="note_sort">
                         <option value="date">date</option>
                         <option value="name">name</option>
                         <option value="type">type</option>
                     </select>
                 </div>
-                <div>${notes_html}</div>
+
+                ${notes_html}
             </div>
         `;
     }
