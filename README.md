@@ -15,17 +15,17 @@ For usage online (for an actual game/campaign), install Rust on a web server, cl
 
 ## Use
 
-### Basic setup & Clocks tab
+### Clocks tab & basic setup
 
 The main screen of the HUD displays a game's [progress clocks](https://bladesinthedark.com/progress-clocks), grouped by player. Left clicking a clock ticks a segment on it; right clicking removes a segment. All clocks are public and changes are immediately visible to all players.
 
 The following functions can be run from your browser's [Console](https://developer.chrome.com/docs/devtools/console/javascript/) to set up a game:
 
-* **`add_player("Maile")`**, to add a player named `Maile`.
-  * Adding a player named `world` will create a section for world clocks that are styled differently from player clocks and always displayed at the top of the list.
-* **`remove_player("uuid")`**, to remove a player with the [ID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Format) `uuid`.
-  * A player's ID can be copied to the clipboard by right-clicking the player name, above their list of clocks.
-* **`rename_player("uuid", "Ezra")`**, to change a player with ID `uuid` to be named `Ezra`.
+* **`add_player("name")`**, to add a player named `name`.
+  * Adding a player named `world` will create a section for world clocks that are styled differently from player clocks and which always display at the top.
+* **`remove_player("uuid")`**, to remove a player with the ID `uuid`.
+  * A player's ID can be copied to the clipboard by right-clicking the player name (above their list of clocks).
+* **`rename_player("uuid", "newname")`**, to change a player with ID `uuid` to be named `newname`.
   * A player can also be renamed by double-clicking the player name.
 
 After adding players to a game, select your role using the user switcher at the top of the sidebar and begin playing.
@@ -38,15 +38,9 @@ The map image can be customized in `client/js/map.js`, along with other settings
 
 ### Notes tab
 
-~~Notes can be created, sorted, filtered, and classified into the following categories:~~
- * ...
-<!--   * misc
-  * person
-  * place
-  * boogins (enemies)
-  * item
-  * concept
-  * event -->
+Notes can be sorted into and filtered by the following categories: `misc`, `person`, `place`, `boogins` (enemies), `item`, `concept`, `event`.
+
+After creation, note titles and descriptions can be edited simply by clicking on the existing text.
 
 ### Sidebar
 
@@ -54,4 +48,4 @@ Various functionalities are available through the sidebar: the user switcher, up
 
 ## License
 
-... to add
+[GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)
