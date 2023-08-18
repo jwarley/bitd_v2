@@ -81,8 +81,8 @@ export class NotesList extends LitElement {
             outline: 0;
         }
         .note .header .del {
-            background: var(--gray-text-color);
-            color: var(--page-color);
+            background: rgba(51, 51, 51, 0.35);
+            color: var(--text-color);
             font-weight: bold;
             font-size: 1rem;
             padding: 0.5rem;
