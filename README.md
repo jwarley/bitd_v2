@@ -1,6 +1,6 @@
-# blades-hud
+# blades-hud (v2)
 
-An online dashboard/[HUD](https://en.wikipedia.org/wiki/Head-up_display) to play John Harper's *[Blades in the Dark](https://en.wikipedia.org/wiki/Blades_in_the_Dark)* TTRPG remotely, written from scratch.
+A [HUD](https://en.wikipedia.org/wiki/Head-up_display)-like dashboard and party info tracker for playing John Harper's *[Blades in the Dark](https://en.wikipedia.org/wiki/Blades_in_the_Dark)* remotely.
 
 ## Testing & deployment
 
@@ -24,11 +24,11 @@ The following functions can be run from your browser's [Console](https://develop
 * **`add_player("name")`**, to add a player named `name`.
   * Adding a player named `world` will create a section for world clocks that are styled differently from player clocks and which always display at the top.
 * **`remove_player("uuid")`**, to remove a player with the ID `uuid`.
-  * A player's ID can be copied to the clipboard by right-clicking the player name (above their list of clocks).
+  * A player's ID can be copied to the clipboard by right-clicking their name (above their list of clocks).
 * **`rename_player("uuid", "newname")`**, to change a player with ID `uuid` to be named `newname`.
-  * A player can also be renamed by double-clicking the player name.
+  * A player can also be renamed by double-clicking their name.
 
-After adding players to a game, select your role using the user switcher at the top of the sidebar and begin playing.
+After adding players to a game, select your role using the user switcher in the top right and begin playing.
 
 ### Map tab
 
@@ -44,7 +44,7 @@ After creation, note titles and descriptions can be edited simply by clicking on
 
 ### Sidebar
 
-Various functionalities are available through the sidebar: the user switcher, up to 6 rollable dice, a private/personal memo pad, toggles for dark mode and hiding the sidebar, and other tools. All information is preserved between sessions and saved in the browser's [localStorage](https://developer.chrome.com/docs/devtools/storage/localstorage/).
+Various functionalities are available through the sidebar: the user switcher, rollable dice, a private/personal memo pad, toggles for dark mode and hiding the sidebar, and other tools. All information is preserved between sessions and saved in the browser's [localStorage](https://developer.chrome.com/docs/devtools/storage/localstorage/).
 
 ## License
 
